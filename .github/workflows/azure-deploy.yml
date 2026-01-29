@@ -42,10 +42,18 @@ jobs:
       - name: Build frontend
         run: |
           cd src/frontend
+          echo "VITE_AZURE_SPEECH_KEY is set: ${{ secrets.AZURE_SPEECH_KEY != '' }}"
+          echo "VITE_AZURE_SPEECH_REGION is set: ${{ secrets.AZURE_SPEECH_REGION != '' }}"
           npm run build
         env:
           VITE_AZURE_SPEECH_KEY: ${{ secrets.AZURE_SPEECH_KEY }}
           VITE_AZURE_SPEECH_REGION: ${{ secrets.AZURE_SPEECH_REGION }}
+
+      - name: Verify build output
+        run: |
+          echo "Checking if speech config is in the build..."
+          grep -l "subscriptionKey" src/frontend/dist/assets/*.js || echo "Checking build contents"
+          ls -la src/frontend/dist/assets/
 
       - name: Deploy to Azure Static Web Apps
         id: deploy
