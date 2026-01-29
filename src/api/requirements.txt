@@ -1,4 +1,11 @@
 # Azure Functions dependencies for Static Web App managed API
-# Note: SWA managed functions have limited dependency support
-# For production, use GitHub Actions deployment or link to separate Functions app
+# GitHub Actions deployment triggers remote Oryx build to install these
+
 azure-functions
+
+# Database connectivity (pure Python - no native dependencies)
+pymssql>=2.2.8
+
+# Azure AI Language for sentiment analysis
+azure-ai-textanalytics==5.3.0
+azure-core>=1.28.0

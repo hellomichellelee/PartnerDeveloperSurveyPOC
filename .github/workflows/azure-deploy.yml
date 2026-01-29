@@ -1,138 +1,76 @@
 # =============================================================================
 # Research Feedback Processing & Insights Platform
-# GitHub Actions CI/CD Pipeline
+# GitHub Actions CI/CD Pipeline for Azure Static Web Apps
 # =============================================================================
 
-name: Azure Deploy
+name: Azure Static Web Apps CI/CD
 
 on:
   push:
     branches:
       - main
   pull_request:
+    types: [opened, synchronize, reopened, closed]
     branches:
       - main
   workflow_dispatch:
 
-env:
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: './src/functions'
-  PYTHON_VERSION: '3.10'
-
 jobs:
-  # ===========================================================================
-  # Build and Test
-  # ===========================================================================
-  build:
+  build_and_deploy:
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
     runs-on: ubuntu-latest
+    name: Build and Deploy
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          submodules: true
+          lfs: false
 
-      - name: Install dependencies
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: src/frontend/package-lock.json
+
+      - name: Install frontend dependencies
         run: |
-          cd ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest pytest-cov
+          cd src/frontend
+          npm ci
 
-      - name: Run tests
+      - name: Build frontend
         run: |
-          cd ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-          python -m pytest --cov=. --cov-report=xml || echo "No tests found, skipping..."
-
-      - name: Upload artifact for deployment
-        uses: actions/upload-artifact@v4
-        with:
-          name: python-app
-          path: |
-            ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-            !${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/.venv
-            !${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/__pycache__
-
-  # ===========================================================================
-  # Deploy Infrastructure (only on main branch)
-  # ===========================================================================
-  deploy-infra:
-    runs-on: ubuntu-latest
-    needs: build
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    outputs:
-      functionAppName: ${{ steps.deploy.outputs.functionAppName }}
-      staticWebAppName: ${{ steps.deploy.outputs.staticWebAppUrl }}
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Azure Login
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Deploy Bicep
-        id: deploy
-        uses: azure/arm-deploy@v2
-        with:
-          resourceGroupName: ${{ secrets.AZURE_RG }}
-          template: ./infra/main.bicep
-          parameters: >
-            environmentName=prod
-            baseName=rfpsurvey
-            sqlAdminLogin=${{ secrets.SQL_ADMIN_LOGIN }}
-            sqlAdminPassword=${{ secrets.SQL_ADMIN_PASSWORD }}
-          failOnStdErr: false
-
-  # ===========================================================================
-  # Deploy Function App
-  # ===========================================================================
-  deploy-functions:
-    runs-on: ubuntu-latest
-    needs: deploy-infra
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    
-    steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: python-app
-          path: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-
-      - name: Azure Login
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Deploy to Azure Functions
-        uses: Azure/functions-action@v1
-        with:
-          app-name: ${{ needs.deploy-infra.outputs.functionAppName }}
-          package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-          scm-do-build-during-deployment: true
-          enable-oryx-build: true
-
-  # ===========================================================================
-  # Deploy Static Web App
-  # ===========================================================================
-  deploy-swa:
-    runs-on: ubuntu-latest
-    needs: deploy-infra
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+          cd src/frontend
+          npm run build
 
       - name: Deploy to Azure Static Web Apps
+        id: deploy
         uses: Azure/static-web-apps-deploy@v1
         with:
-          azure_static_web_apps_api_token: ${{ secrets.SWA_DEPLOYMENT_TOKEN }}
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          app_location: "/src/frontend"
-          output_location: ""
+          # Frontend build output
+          app_location: "src/frontend/dist"
+          # API location (Python Azure Functions)
+          api_location: "src/api"
+          # Skip app build since we already built it
           skip_app_build: true
+          # Skip API build to trigger remote Oryx build
+          skip_api_build: true
+        env:
+          # These enable remote build for Python dependencies
+          ENABLE_ORYX_BUILD: true
+          SCM_DO_BUILD_DURING_DEPLOYMENT: true
+
+  close_pull_request:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    name: Close Pull Request
+    steps:
+      - name: Close Pull Request
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          action: "close"

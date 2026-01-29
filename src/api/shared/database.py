@@ -1,21 +1,42 @@
 """
-Database helper for Azure SQL connectivity using pytds.
-Pure Python TDS implementation that works in Azure Functions managed environment.
+Database helper for Azure SQL connectivity using pymssql.
+Works in Azure Functions managed environment when deployed via GitHub Actions.
 """
 
 import os
-import pytds
 import logging
+
+# Try to import pymssql, fall back to None if not available
+try:
+    import pymssql
+    PYMSSQL_AVAILABLE = True
+except ImportError:
+    PYMSSQL_AVAILABLE = False
+    pymssql = None
+
 
 def get_connection():
     """
-    Get a database connection using pytds.
+    Get a database connection using pymssql.
     Parses the ODBC-style connection string and extracts components.
+    
+    Returns:
+        pymssql connection object
+        
+    Raises:
+        ImportError: If pymssql is not installed
+        ValueError: If connection string is missing or invalid
     """
+    if not PYMSSQL_AVAILABLE:
+        raise ImportError(
+            "pymssql is not installed. Deploy via GitHub Actions to enable remote build, "
+            "or install manually with: pip install pymssql"
+        )
+    
     conn_string = os.environ.get('SqlConnectionString', '')
     
     if not conn_string:
-        raise ValueError("SqlConnectionString not configured")
+        raise ValueError("SqlConnectionString environment variable not configured")
     
     # Parse the connection string
     # Format: Server=tcp:server.database.windows.net,1433;Database=db;User Id=user;Password=pass;...
@@ -37,13 +58,22 @@ def get_connection():
     password = parts.get('password', parts.get('pwd', ''))
     
     if not all([server, database, user, password]):
-        raise ValueError(f"Missing connection parameters. Server: {bool(server)}, DB: {bool(database)}, User: {bool(user)}, Pwd: {bool(password)}")
+        raise ValueError(
+            f"Missing connection parameters. "
+            f"Server: {bool(server)}, DB: {bool(database)}, User: {bool(user)}, Pwd: {bool(password)}"
+        )
     
     logging.info(f"Connecting to SQL Server: {server}, Database: {database}")
     
-    return pytds.connect(
-        dsn=server,
+    return pymssql.connect(
+        server=server,
         user=user,
         password=password,
-        database=database
+        database=database,
+        tds_version='7.4'
     )
+
+
+def is_database_available():
+    """Check if database connectivity is available."""
+    return PYMSSQL_AVAILABLE and bool(os.environ.get('SqlConnectionString', ''))
