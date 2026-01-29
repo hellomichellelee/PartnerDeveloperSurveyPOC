@@ -32,7 +32,12 @@
     },
     "mimeTypes": {
         ".json": "application/json",
-        ".wasm": "application/wasm"
+        ".wasm": "application/wasm",
+        ".js": "text/javascript",
+        ".mjs": "text/javascript",
+        ".css": "text/css",
+        ".html": "text/html",
+        ".svg": "image/svg+xml"
     },
     "platform": {
         "apiRuntime": "python:3.10"
