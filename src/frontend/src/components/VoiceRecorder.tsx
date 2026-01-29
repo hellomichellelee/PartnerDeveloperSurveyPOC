@@ -93,6 +93,31 @@ export function VoiceRecorder({ onTranscript, onRecordingChange }: VoiceRecorder
     setIsInitializing(true);
 
     try {
+      // First, explicitly request microphone permission
+      // This triggers the browser's permission dialog
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        // Stop the stream immediately - we just needed it to get permission
+        stream.getTracks().forEach(track => track.stop());
+      } catch (permissionError) {
+        console.error('Microphone permission denied:', permissionError);
+        if (permissionError instanceof DOMException) {
+          if (permissionError.name === 'NotAllowedError') {
+            setError('Microphone access denied. Please allow microphone access in your browser settings and try again.');
+          } else if (permissionError.name === 'NotFoundError') {
+            setError('No microphone found. Please connect a microphone and try again.');
+          } else if (permissionError.name === 'NotReadableError') {
+            setError('Microphone is in use by another application. Please close other apps using the microphone.');
+          } else {
+            setError(`Microphone error: ${permissionError.message}`);
+          }
+        } else {
+          setError('Could not access microphone. Please check your browser permissions.');
+        }
+        setIsInitializing(false);
+        return;
+      }
+
       // Check if we should use mock mode
       if (featureFlags.useMockSpeechService) {
         console.log('Using mock speech service (no Azure Speech key configured)');
