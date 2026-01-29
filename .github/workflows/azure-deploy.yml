@@ -61,6 +61,10 @@ jobs:
         run: |
           # Remove node_modules to reduce deployment size
           rm -rf src/frontend/node_modules
+          # List what we're deploying
+          echo "Contents of dist folder:"
+          ls -la src/frontend/dist/
+          ls -la src/frontend/dist/assets/ || echo "No assets folder"
           echo "Cleaned up node_modules"
 
       - name: Deploy to Azure Static Web Apps
@@ -70,10 +74,10 @@ jobs:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          # Frontend source location (for build) or output location
-          app_location: "src/frontend"
-          # Frontend build output directory
-          output_location: "dist"
+          # Deploy directly from the built dist folder
+          app_location: "src/frontend/dist"
+          # No output_location needed since we're pointing directly to built output
+          output_location: ""
           # API location (Python Azure Functions)
           api_location: "src/api"
           # Skip app build since we already built it
