@@ -55,10 +55,11 @@ jobs:
           app_location: "src/frontend/dist"
           # API location (Python Azure Functions)
           api_location: "src/api"
+          # Specify Python API
+          api_language: "python"
+          api_version: "3.10"
           # Skip app build since we already built it
           skip_app_build: true
-          # Skip API build to trigger remote Oryx build
-          skip_api_build: true
         env:
           # These enable remote build for Python dependencies
           ENABLE_ORYX_BUILD: true
