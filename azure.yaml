@@ -1,0 +1,121 @@
+# =============================================================================
+# Azure Developer CLI (azd) Configuration
+# Research Feedback Processing & Insights Platform
+# =============================================================================
+
+name: research-feedback-platform
+metadata:
+  template: research-feedback-platform@1.0.0
+
+# =============================================================================
+# Services Configuration
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # Frontend - Azure Static Web App (React + Fluent UI 2)
+  # ---------------------------------------------------------------------------
+  web:
+    project: ./src/frontend
+    language: ts
+    host: staticwebapp
+    dist: dist
+    hooks:
+      prebuild:
+        shell: pwsh
+        run: npm install
+      build:
+        shell: pwsh
+        run: npm run build
+    
+  # ---------------------------------------------------------------------------
+  # API - Azure Functions (Python)
+  # ---------------------------------------------------------------------------
+  api:
+    project: ./src/functions
+    language: python
+    host: function
+    
+# =============================================================================
+# Infrastructure Configuration
+# =============================================================================
+
+infra:
+  provider: bicep
+  path: ./infra
+  module: main
+
+# =============================================================================
+# Hooks (Lifecycle Scripts)
+# =============================================================================
+
+hooks:
+  # Run before infrastructure provisioning
+  preprovision:
+    shell: pwsh
+    run: |
+      Write-Host "🚀 Preparing infrastructure provisioning..."
+      Write-Host "Environment: $env:AZURE_ENV_NAME"
+      
+  # Run after infrastructure provisioning
+  postprovision:
+    shell: pwsh
+    run: |
+      Write-Host "✅ Infrastructure provisioned successfully!"
+      Write-Host ""
+      Write-Host "📋 Next steps:"
+      Write-Host "  1. Run the database initialization script"
+      Write-Host "  2. Deploy the application code with 'azd deploy'"
+      Write-Host ""
+      
+  # Run before code deployment
+  predeploy:
+    shell: pwsh
+    run: |
+      Write-Host "📦 Preparing code deployment..."
+      
+      # Install Python dependencies for API
+      Push-Location ./src/functions
+      if (Test-Path requirements.txt) {
+        Write-Host "Installing Python dependencies..."
+        pip install -r requirements.txt -q
+      }
+      Pop-Location
+      
+  # Run after code deployment
+  postdeploy:
+    shell: pwsh
+    run: |
+      Write-Host "✅ Deployment complete!"
+      Write-Host ""
+      Write-Host "🌐 Application URLs:"
+      Write-Host "  Frontend: $env:SERVICE_WEB_URI"
+      Write-Host "  API:      $env:SERVICE_API_URI"
+      Write-Host ""
+      Write-Host "📊 Don't forget to:"
+      Write-Host "  1. Initialize the database schema (scripts/init-database.sql)"
+      Write-Host "  2. Configure Power BI connection"
+      Write-Host ""
+
+# =============================================================================
+# Pipeline Configuration (for CI/CD)
+# =============================================================================
+
+pipeline:
+  provider: github
+  
+# =============================================================================
+# Environment Variables
+# =============================================================================
+
+# These are populated automatically from Bicep outputs and can be
+# referenced in your application code
+#
+# Available environment variables after provisioning:
+#   - AZURE_SQL_CONNECTION_STRING
+#   - AZURE_LANGUAGE_ENDPOINT
+#   - AZURE_LANGUAGE_KEY
+#   - AZURE_SPEECH_KEY
+#   - AZURE_SPEECH_REGION
+#   - SERVICE_WEB_URI (Static Web App URL)
+#   - SERVICE_API_URI (Function App URL)

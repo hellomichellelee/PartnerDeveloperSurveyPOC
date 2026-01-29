@@ -1,0 +1,40 @@
+{
+    "navigationFallback": {
+        "rewrite": "/index.html",
+        "exclude": [
+            "/assets/*",
+            "/api/*",
+            "*.js",
+            "*.css",
+            "*.svg",
+            "*.ico"
+        ]
+    },
+    "routes": [
+        {
+            "route": "/api/*",
+            "allowedRoles": [
+                "anonymous"
+            ]
+        }
+    ],
+    "responseOverrides": {
+        "404": {
+            "rewrite": "/index.html"
+        }
+    },
+    "globalHeaders": {
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "DENY",
+        "X-XSS-Protection": "1; mode=block",
+        "Referrer-Policy": "strict-origin-when-cross-origin",
+        "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https://*.microsoft.com https://*.azure.com https://*.cognitiveservices.azure.com wss://*.microsoft.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https://res-1.cdn.office.net; media-src 'self' blob:;"
+    },
+    "mimeTypes": {
+        ".json": "application/json",
+        ".wasm": "application/wasm"
+    },
+    "platform": {
+        "apiRuntime": "python:3.10"
+    }
+}

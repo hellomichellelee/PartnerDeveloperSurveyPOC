@@ -1,0 +1,56 @@
+/* =============================================================================
+ * Research Feedback Platform - Global Styles
+ * Using Fluent 2 Design System tokens
+ * ============================================================================= */
+
+/* Reset and base styles */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  /* Fluent 2 uses system font stack for cross-platform consistency */
+  font-family: 'Segoe UI', 'Segoe UI Web (West European)', -apple-system, 
+    BlinkMacSystemFont, Roboto, 'Helvetica Neue', sans-serif;
+  font-size: 14px; /* Body 1 base size */
+  line-height: 20px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  min-height: 100vh;
+}
+
+/* Focus visible styles for accessibility */
+:focus-visible {
+  outline: 2px solid var(--colorBrandStroke1);
+  outline-offset: 2px;
+}
+
+/* Remove default focus for mouse users */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Smooth scrolling */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

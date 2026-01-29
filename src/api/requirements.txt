@@ -1,0 +1,4 @@
+# Azure Functions dependencies for Static Web App managed API
+# Note: SWA managed functions have limited dependency support
+# For production, use GitHub Actions deployment or link to separate Functions app
+azure-functions

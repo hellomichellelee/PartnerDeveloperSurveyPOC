@@ -1,0 +1,74 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "func",
+      "label": "func: host start",
+      "command": "host start",
+      "problemMatcher": "$func-python-watch",
+      "isBackground": true,
+      "options": {
+        "cwd": "${workspaceFolder}/src/functions"
+      },
+      "dependsOn": "pip install (functions)"
+    },
+    {
+      "type": "shell",
+      "label": "pip install (functions)",
+      "command": "pip install -r requirements.txt",
+      "options": {
+        "cwd": "${workspaceFolder}/src/functions"
+      },
+      "problemMatcher": []
+    },
+    {
+      "type": "shell",
+      "label": "Start Frontend Server",
+      "command": "npx",
+      "args": [
+        "http-server",
+        "-p",
+        "3000",
+        "-c-1"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/src/frontend"
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "type": "shell",
+      "label": "Deploy Infrastructure",
+      "command": "az",
+      "args": [
+        "deployment",
+        "group",
+        "create",
+        "--resource-group",
+        "${input:resourceGroup}",
+        "--template-file",
+        "infra/main.bicep",
+        "--parameters",
+        "infra/main.bicepparam"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "type": "shell",
+      "label": "azd up",
+      "command": "azd",
+      "args": [
+        "up"
+      ],
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "resourceGroup",
+      "type": "promptString",
+      "description": "Enter the Azure Resource Group name"
+    }
+  ]
+}
