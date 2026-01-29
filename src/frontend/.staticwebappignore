@@ -1,0 +1,25 @@
+# Ignore node_modules - not needed for deployment since we pre-build
+node_modules/
+
+# Source files not needed in production
+src/
+*.ts
+*.tsx
+tsconfig.json
+tsconfig.node.json
+vite.config.ts
+package-lock.json
+
+# Development files
+*.log
+.git/
+.vscode/
+.env.local
+.env.development
+
+# Test files
+__tests__/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx

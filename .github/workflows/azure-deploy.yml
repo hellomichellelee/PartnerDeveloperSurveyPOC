@@ -54,6 +54,14 @@ jobs:
           echo "Checking if speech config is in the build..."
           grep -l "subscriptionKey" src/frontend/dist/assets/*.js || echo "Checking build contents"
           ls -la src/frontend/dist/assets/
+          echo "Build output size:"
+          du -sh src/frontend/dist
+
+      - name: Clean up before deploy
+        run: |
+          # Remove node_modules to reduce deployment size
+          rm -rf src/frontend/node_modules
+          echo "Cleaned up node_modules"
 
       - name: Deploy to Azure Static Web Apps
         id: deploy
