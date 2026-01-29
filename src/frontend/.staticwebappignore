@@ -1,10 +1,7 @@
 # Ignore node_modules - not needed for deployment since we pre-build
 node_modules/
 
-# Source files not needed in production
-src/
-*.ts
-*.tsx
+# Development config files (keep source for SWA to find dist)
 tsconfig.json
 tsconfig.node.json
 vite.config.ts
