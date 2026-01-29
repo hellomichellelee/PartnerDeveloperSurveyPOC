@@ -43,6 +43,9 @@ jobs:
         run: |
           cd src/frontend
           npm run build
+        env:
+          VITE_AZURE_SPEECH_KEY: ${{ secrets.AZURE_SPEECH_KEY }}
+          VITE_AZURE_SPEECH_REGION: ${{ secrets.AZURE_SPEECH_REGION }}
 
       - name: Deploy to Azure Static Web Apps
         id: deploy

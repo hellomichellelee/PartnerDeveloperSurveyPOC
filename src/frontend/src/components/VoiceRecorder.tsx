@@ -5,7 +5,6 @@ import {
   Button,
   Text,
   Card,
-  Badge,
   Spinner,
   Link,
 } from '@fluentui/react-components';
@@ -14,7 +13,7 @@ import {
   RecordStop24Regular,
 } from '@fluentui/react-icons';
 import * as SpeechSDK from 'microsoft-cognitiveservices-speech-sdk';
-import { azureConfig, featureFlags } from '../config/survey';
+import { azureConfig } from '../config/survey';
 
 const useStyles = makeStyles({
   container: {
@@ -56,9 +55,6 @@ const useStyles = makeStyles({
     textAlign: 'center',
     minHeight: '24px',
   },
-  statusBadge: {
-    marginTop: tokens.spacingVerticalS,
-  },
   errorText: {
     color: tokens.colorPaletteRedForeground1,
     textAlign: 'center',
@@ -72,12 +68,12 @@ const useStyles = makeStyles({
   retryLink: {
     cursor: 'pointer',
   },
+  configWarning: {
+    color: tokens.colorPaletteYellowForeground1,
+    textAlign: 'center',
+    fontSize: tokens.fontSizeBase200,
+  },
 });
-
-// Check if Speech SDK is properly configured
-const isSpeechConfigured = () => {
-  return Boolean(azureConfig.speech.subscriptionKey && azureConfig.speech.region);
-};
 
 interface VoiceRecorderProps {
   onTranscript: (text: string, isFinal: boolean) => void;
@@ -126,8 +122,15 @@ export function VoiceRecorder({ onTranscript, onRecordingChange }: VoiceRecorder
     setIsInitializing(true);
 
     try {
+      // Check if Speech SDK is configured
+      if (!azureConfig.speech.subscriptionKey || !azureConfig.speech.region) {
+        setErrorType('config');
+        setError('Azure Speech service is not configured. Please add VITE_AZURE_SPEECH_KEY and VITE_AZURE_SPEECH_REGION environment variables.');
+        setIsInitializing(false);
+        return;
+      }
+
       // First, explicitly request microphone permission
-      // This triggers the browser's permission dialog
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         // Stop the stream immediately - we just needed it to get permission
@@ -150,22 +153,6 @@ export function VoiceRecorder({ onTranscript, onRecordingChange }: VoiceRecorder
           setError('Could not access microphone.');
         }
         setIsInitializing(false);
-        return;
-      }
-
-      // Check if Speech SDK is configured - if not, use mock mode
-      const useMockMode = featureFlags.useMockSpeechService || !isSpeechConfigured();
-      
-      if (useMockMode) {
-        console.log('Using mock speech service (Speech SDK not configured)');
-        setIsRecording(true);
-        onRecordingChange(true);
-        setIsInitializing(false);
-        
-        // Simulate transcription after a delay
-        setTimeout(() => {
-          onTranscript('This is a simulated transcription for development purposes.', true);
-        }, 2000);
         return;
       }
 
@@ -219,16 +206,9 @@ export function VoiceRecorder({ onTranscript, onRecordingChange }: VoiceRecorder
       const errorMessage = err instanceof Error ? err.message : String(err);
       
       // Determine error type for appropriate messaging
-      if (errorMessage.includes('subscription') || errorMessage.includes('key') || errorMessage.includes('401')) {
+      if (errorMessage.includes('subscription') || errorMessage.includes('key') || errorMessage.includes('401') || errorMessage.includes('403')) {
         setErrorType('config');
-        setError('Speech service not configured. Using simulated transcription.');
-        // Fall back to mock mode
-        setIsRecording(true);
-        onRecordingChange(true);
-        setTimeout(() => {
-          onTranscript('(Simulated) Your voice response has been recorded.', true);
-          stopRecording();
-        }, 2000);
+        setError('Speech service authentication failed. Please check Azure Speech credentials.');
       } else {
         setErrorType('other');
         setError(`Recording error: ${errorMessage}`);
@@ -310,18 +290,10 @@ export function VoiceRecorder({ onTranscript, onRecordingChange }: VoiceRecorder
               </>
             )}
             {errorType === 'config' && (
-              <Badge appearance="outline" color="warning" size="small">
-                Using demo mode - transcription simulated
-              </Badge>
+              <Text size={100} className={styles.configWarning}>
+                Check that VITE_AZURE_SPEECH_KEY and VITE_AZURE_SPEECH_REGION are set correctly.
+              </Text>
             )}
-          </div>
-        )}
-
-        {(featureFlags.useMockSpeechService || !isSpeechConfigured()) && !error && (
-          <div className={styles.statusBadge}>
-            <Badge appearance="outline" color="informative">
-              Demo Mode - Voice will be simulated
-            </Badge>
           </div>
         )}
       </Card>

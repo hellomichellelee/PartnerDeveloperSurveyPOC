@@ -76,5 +76,4 @@ export const azureConfig = {
 export const featureFlags = {
   enableVoiceInput: true,
   enableOfflineMode: true,
-  useMockSpeechService: import.meta.env.DEV && !import.meta.env.VITE_AZURE_SPEECH_KEY,
 };
