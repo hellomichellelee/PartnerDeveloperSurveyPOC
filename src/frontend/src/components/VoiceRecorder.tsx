@@ -7,6 +7,7 @@ import {
   Card,
   Badge,
   Spinner,
+  Link,
 } from '@fluentui/react-components';
 import {
   Mic24Filled,
@@ -62,7 +63,21 @@ const useStyles = makeStyles({
     color: tokens.colorPaletteRedForeground1,
     textAlign: 'center',
   },
+  errorContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: tokens.spacingVerticalS,
+  },
+  retryLink: {
+    cursor: 'pointer',
+  },
 });
+
+// Check if Speech SDK is properly configured
+const isSpeechConfigured = () => {
+  return Boolean(azureConfig.speech.subscriptionKey && azureConfig.speech.region);
+};
 
 interface VoiceRecorderProps {
   onTranscript: (text: string, isFinal: boolean) => void;
@@ -75,6 +90,7 @@ export function VoiceRecorder({ onTranscript, onRecordingChange }: VoiceRecorder
   const [isInitializing, setIsInitializing] = useState(false);
   const [interimText, setInterimText] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [errorType, setErrorType] = useState<'permission' | 'config' | 'other' | null>(null);
   
   const recognizerRef = useRef<SpeechSDK.SpeechRecognizer | null>(null);
 
@@ -88,8 +104,25 @@ export function VoiceRecorder({ onTranscript, onRecordingChange }: VoiceRecorder
     };
   }, []);
 
+  // Define stopRecording first so it can be used in startRecording
+  const stopRecording = useCallback(async () => {
+    if (recognizerRef.current) {
+      try {
+        await recognizerRef.current.stopContinuousRecognitionAsync();
+        recognizerRef.current.close();
+        recognizerRef.current = null;
+      } catch (err) {
+        console.error('Error stopping recognition:', err);
+      }
+    }
+    setIsRecording(false);
+    setInterimText('');
+    onRecordingChange(false);
+  }, [onRecordingChange]);
+
   const startRecording = useCallback(async () => {
     setError(null);
+    setErrorType(null);
     setIsInitializing(true);
 
     try {
@@ -99,28 +132,32 @@ export function VoiceRecorder({ onTranscript, onRecordingChange }: VoiceRecorder
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         // Stop the stream immediately - we just needed it to get permission
         stream.getTracks().forEach(track => track.stop());
+        console.log('Microphone permission granted');
       } catch (permissionError) {
         console.error('Microphone permission denied:', permissionError);
+        setErrorType('permission');
         if (permissionError instanceof DOMException) {
           if (permissionError.name === 'NotAllowedError') {
-            setError('Microphone access denied. Please allow microphone access in your browser settings and try again.');
+            setError('Microphone access was denied.');
           } else if (permissionError.name === 'NotFoundError') {
             setError('No microphone found. Please connect a microphone and try again.');
           } else if (permissionError.name === 'NotReadableError') {
-            setError('Microphone is in use by another application. Please close other apps using the microphone.');
+            setError('Microphone is in use by another application.');
           } else {
             setError(`Microphone error: ${permissionError.message}`);
           }
         } else {
-          setError('Could not access microphone. Please check your browser permissions.');
+          setError('Could not access microphone.');
         }
         setIsInitializing(false);
         return;
       }
 
-      // Check if we should use mock mode
-      if (featureFlags.useMockSpeechService) {
-        console.log('Using mock speech service (no Azure Speech key configured)');
+      // Check if Speech SDK is configured - if not, use mock mode
+      const useMockMode = featureFlags.useMockSpeechService || !isSpeechConfigured();
+      
+      if (useMockMode) {
+        console.log('Using mock speech service (Speech SDK not configured)');
         setIsRecording(true);
         onRecordingChange(true);
         setIsInitializing(false);
@@ -162,7 +199,8 @@ export function VoiceRecorder({ onTranscript, onRecordingChange }: VoiceRecorder
       recognizer.canceled = (_, event) => {
         if (event.reason === SpeechSDK.CancellationReason.Error) {
           console.error('Speech recognition error:', event.errorDetails);
-          setError(`Recognition error: ${event.errorDetails}`);
+          setErrorType('config');
+          setError(`Speech service error: ${event.errorDetails}`);
         }
         stopRecording();
       };
@@ -178,26 +216,27 @@ export function VoiceRecorder({ onTranscript, onRecordingChange }: VoiceRecorder
       onRecordingChange(true);
     } catch (err) {
       console.error('Failed to start recording:', err);
-      setError('Failed to access microphone. Please check permissions.');
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      
+      // Determine error type for appropriate messaging
+      if (errorMessage.includes('subscription') || errorMessage.includes('key') || errorMessage.includes('401')) {
+        setErrorType('config');
+        setError('Speech service not configured. Using simulated transcription.');
+        // Fall back to mock mode
+        setIsRecording(true);
+        onRecordingChange(true);
+        setTimeout(() => {
+          onTranscript('(Simulated) Your voice response has been recorded.', true);
+          stopRecording();
+        }, 2000);
+      } else {
+        setErrorType('other');
+        setError(`Recording error: ${errorMessage}`);
+      }
     } finally {
       setIsInitializing(false);
     }
-  }, [onTranscript, onRecordingChange]);
-
-  const stopRecording = useCallback(async () => {
-    if (recognizerRef.current) {
-      try {
-        await recognizerRef.current.stopContinuousRecognitionAsync();
-        recognizerRef.current.close();
-        recognizerRef.current = null;
-      } catch (err) {
-        console.error('Error stopping recognition:', err);
-      }
-    }
-    setIsRecording(false);
-    setInterimText('');
-    onRecordingChange(false);
-  }, [onRecordingChange]);
+  }, [onTranscript, onRecordingChange, stopRecording]);
 
   const toggleRecording = useCallback(() => {
     if (isRecording) {
@@ -248,15 +287,40 @@ export function VoiceRecorder({ onTranscript, onRecordingChange }: VoiceRecorder
         )}
 
         {error && (
-          <Text className={styles.errorText} size={200}>
-            {error}
-          </Text>
+          <div className={styles.errorContainer}>
+            <Text className={styles.errorText} size={200}>
+              {error}
+            </Text>
+            {errorType === 'permission' && (
+              <>
+                <Link 
+                  className={styles.retryLink}
+                  onClick={async () => {
+                    setError(null);
+                    setErrorType(null);
+                    // Re-request permission
+                    startRecording();
+                  }}
+                >
+                  🔄 Click here to try again
+                </Link>
+                <Text size={100} style={{ color: tokens.colorNeutralForeground3, textAlign: 'center' }}>
+                  If denied, click the 🔒 icon in your browser's address bar to manage permissions
+                </Text>
+              </>
+            )}
+            {errorType === 'config' && (
+              <Badge appearance="outline" color="warning" size="small">
+                Using demo mode - transcription simulated
+              </Badge>
+            )}
+          </div>
         )}
 
-        {featureFlags.useMockSpeechService && (
+        {(featureFlags.useMockSpeechService || !isSpeechConfigured()) && !error && (
           <div className={styles.statusBadge}>
-            <Badge appearance="outline" color="warning">
-              Mock Mode (No Azure Speech key)
+            <Badge appearance="outline" color="informative">
+              Demo Mode - Voice will be simulated
             </Badge>
           </div>
         )}
