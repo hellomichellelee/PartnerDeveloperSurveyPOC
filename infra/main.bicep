@@ -44,8 +44,6 @@ var uniqueSuffix = uniqueString(resourceGroup().id, baseName)
 
 // Resource names
 var staticWebAppName = 'swa-${resourcePrefix}'
-var functionAppName = 'func-${resourcePrefix}-${uniqueSuffix}'
-var appServicePlanName = 'asp-${resourcePrefix}'
 var storageAccountName = 'st${replace(baseName, '-', '')}${uniqueSuffix}'
 var sqlServerName = 'sql-${resourcePrefix}-${uniqueSuffix}'
 var sqlDatabaseName = 'sqldb-responses'
@@ -194,89 +192,7 @@ resource languageService 'Microsoft.CognitiveServices/accounts@2023-10-01-previe
   }
 }
 
-// -----------------------------------------------------------------------------
-// App Service Plan (for Azure Functions)
-// -----------------------------------------------------------------------------
 
-resource appServicePlan 'Microsoft.Web/serverfarms@2023-01-01' = {
-  name: appServicePlanName
-  location: location
-  tags: tags
-  sku: {
-    name: 'Y1'
-    tier: 'Dynamic'
-  }
-  kind: 'functionapp'
-  properties: {
-    reserved: true // Required for Linux
-  }
-}
-
-// -----------------------------------------------------------------------------
-// Azure Functions App
-// -----------------------------------------------------------------------------
-
-resource functionApp 'Microsoft.Web/sites@2023-01-01' = {
-  name: functionAppName
-  location: location
-  tags: union(tags, {
-    'azd-service-name': 'api'
-  })
-  kind: 'functionapp,linux'
-  properties: {
-    serverFarmId: appServicePlan.id
-    httpsOnly: true
-    siteConfig: {
-      pythonVersion: '3.10'
-      linuxFxVersion: 'PYTHON|3.10'
-      cors: {
-        allowedOrigins: [
-          'https://${staticWebAppName}.azurestaticapps.net'
-          'http://localhost:3000'
-        ]
-        supportCredentials: false
-      }
-      appSettings: [
-        {
-          name: 'AzureWebJobsStorage'
-          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccount.listKeys().keys[0].value}'
-        }
-        {
-          name: 'FUNCTIONS_EXTENSION_VERSION'
-          value: '~4'
-        }
-        {
-          name: 'FUNCTIONS_WORKER_RUNTIME'
-          value: 'python'
-        }
-        {
-          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
-          value: appInsights.properties.ConnectionString
-        }
-        {
-          name: 'AZURE_SQL_CONNECTION_STRING'
-          value: 'Driver={ODBC Driver 18 for SQL Server};Server=tcp:${sqlServer.properties.fullyQualifiedDomainName},1433;Database=${sqlDatabaseName};Uid=${sqlAdminLogin};Pwd=${sqlAdminPassword};Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;'
-        }
-        {
-          name: 'AZURE_LANGUAGE_ENDPOINT'
-          value: languageService.properties.endpoint
-        }
-        {
-          name: 'AZURE_LANGUAGE_KEY'
-          value: languageService.listKeys().key1
-        }
-        {
-          name: 'AZURE_SPEECH_KEY'
-          value: speechService.listKeys().key1
-        }
-        {
-          name: 'AZURE_SPEECH_REGION'
-          value: location
-        }
-      ]
-    }
-  }
-}
 
 // -----------------------------------------------------------------------------
 // Azure Static Web App
@@ -303,24 +219,16 @@ resource staticWebApp 'Microsoft.Web/staticSites@2023-01-01' = {
   }
 }
 
-// Link Static Web App to Function App backend
-resource staticWebAppBackend 'Microsoft.Web/staticSites/linkedBackends@2023-01-01' = {
-  parent: staticWebApp
-  name: 'backend'
-  properties: {
-    backendResourceId: functionApp.id
-    region: location
-  }
-}
-
-// Static Web App settings for Speech SDK
+// Static Web App settings for Speech SDK (API is managed by SWA)
 resource staticWebAppSettings 'Microsoft.Web/staticSites/config@2023-01-01' = {
   parent: staticWebApp
   name: 'appsettings'
   properties: {
     AZURE_SPEECH_KEY: speechService.listKeys().key1
     AZURE_SPEECH_REGION: location
-    API_BASE_URL: 'https://${functionApp.properties.defaultHostName}'
+    SqlConnectionString: 'Server=tcp:${sqlServer.properties.fullyQualifiedDomainName},1433;Database=${sqlDatabaseName};User Id=${sqlAdminLogin};Password=${sqlAdminPassword};Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;'
+    AZURE_LANGUAGE_ENDPOINT: languageService.properties.endpoint
+    AZURE_LANGUAGE_KEY: languageService.listKeys().key1
   }
 }
 
@@ -331,14 +239,8 @@ resource staticWebAppSettings 'Microsoft.Web/staticSites/config@2023-01-01' = {
 @description('Static Web App URL')
 output staticWebAppUrl string = 'https://${staticWebApp.properties.defaultHostname}'
 
-@description('Static Web App deployment token')
-output staticWebAppDeploymentToken string = staticWebApp.listSecrets().properties.apiKey
-
-@description('Function App URL')
-output functionAppUrl string = 'https://${functionApp.properties.defaultHostName}'
-
-@description('Function App name')
-output functionAppName string = functionApp.name
+// Note: Deployment token should be retrieved via Azure CLI or Portal, not exposed as output
+// Use: az staticwebapp secrets list --name <app-name> --resource-group <rg-name>
 
 @description('SQL Server fully qualified domain name')
 output sqlServerFqdn string = sqlServer.properties.fullyQualifiedDomainName

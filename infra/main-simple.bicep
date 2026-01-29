@@ -204,8 +204,8 @@ output sqlServerFqdn string = sqlServer.properties.fullyQualifiedDomainName
 @description('SQL Database name')
 output sqlDatabaseName string = sqlDatabase.name
 
-@description('SQL Connection String (without password)')
-output sqlConnectionStringTemplate string = 'Driver={ODBC Driver 18 for SQL Server};Server=tcp:${sqlServer.properties.fullyQualifiedDomainName},1433;Database=${sqlDatabaseName};Uid=${sqlAdminLogin};Pwd=<YOUR_PASSWORD>;Encrypt=yes;TrustServerCertificate=no;'
+// Note: Connection string should be constructed at runtime using Key Vault secrets
+// SQL Server FQDN and Database name are provided as separate outputs above
 
 @description('Speech Service endpoint')
 output speechServiceEndpoint string = speechService.properties.endpoint

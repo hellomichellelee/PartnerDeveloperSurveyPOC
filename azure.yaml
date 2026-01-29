@@ -28,13 +28,8 @@ services:
         shell: pwsh
         run: npm run build
     
-  # ---------------------------------------------------------------------------
-  # API - Azure Functions (Python)
-  # ---------------------------------------------------------------------------
-  api:
-    project: ./src/functions
-    language: python
-    host: function
+  # API is managed by Static Web App (./src/api)
+  # No separate Function App deployment needed
     
 # =============================================================================
 # Infrastructure Configuration
@@ -73,14 +68,7 @@ hooks:
     shell: pwsh
     run: |
       Write-Host "📦 Preparing code deployment..."
-      
-      # Install Python dependencies for API
-      Push-Location ./src/functions
-      if (Test-Path requirements.txt) {
-        Write-Host "Installing Python dependencies..."
-        pip install -r requirements.txt -q
-      }
-      Pop-Location
+      Write-Host "API dependencies will be installed during SWA deployment..."
       
   # Run after code deployment
   postdeploy:
@@ -88,9 +76,9 @@ hooks:
     run: |
       Write-Host "✅ Deployment complete!"
       Write-Host ""
-      Write-Host "🌐 Application URLs:"
-      Write-Host "  Frontend: $env:SERVICE_WEB_URI"
-      Write-Host "  API:      $env:SERVICE_API_URI"
+      Write-Host "🌐 Application URL:"
+      Write-Host "  $env:SERVICE_WEB_URI"
+      Write-Host "  (API is hosted at /api/* routes)"
       Write-Host ""
       Write-Host "📊 Don't forget to:"
       Write-Host "  1. Initialize the database schema (scripts/init-database.sql)"
