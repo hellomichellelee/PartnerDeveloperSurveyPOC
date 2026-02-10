@@ -35,7 +35,7 @@ export function VoiceRecorder({ onTranscript, onRecordingChange, isRecording }: 
   const styles = useStyles();
   const [isInitializing, setIsInitializing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const recognizerRef = useRef<SpeechSDK.SpeechRecognizer | null>(null);
 
   const stopRecording = useCallback(async () => {
