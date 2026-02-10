@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import {
   makeStyles,
   tokens,
@@ -77,6 +77,9 @@ export function SurveyQuestions({ questions, onComplete, isSubmitting }: SurveyQ
   const [currentText, setCurrentText] = useState('');
   const [interimText, setInterimText] = useState('');
   const [isRecording, setIsRecording] = useState(false);
+  
+  // Ref to track the latest confirmed text for voice appending
+  const confirmedTextRef = useRef('');
 
   const currentQuestion = questions[currentIndex];
   const progress = ((currentIndex + 1) / questions.length) * 100;
@@ -84,8 +87,13 @@ export function SurveyQuestions({ questions, onComplete, isSubmitting }: SurveyQ
   const isFirstQuestion = currentIndex === 0;
 
   const existingResponse = responses.get(currentQuestion.id);
-  const confirmedText = currentText || existingResponse?.responseText || '';
+  const confirmedText = currentText !== '' ? currentText : (existingResponse?.responseText || '');
   const displayText = confirmedText + (interimText ? (confirmedText ? ' ' : '') + interimText : '');
+
+  // Keep ref in sync with confirmed text
+  useEffect(() => {
+    confirmedTextRef.current = confirmedText;
+  }, [confirmedText]);
 
   const saveCurrentResponse = useCallback(() => {
     if (confirmedText.trim()) {
@@ -104,7 +112,8 @@ export function SurveyQuestions({ questions, onComplete, isSubmitting }: SurveyQ
     saveCurrentResponse();
     setCurrentText('');
     setInterimText('');
-
+    confirmedTextRef.current = '';
+    
     if (isLastQuestion) {
       const allResponses = Array.from(responses.values());
       if (confirmedText.trim()) {
@@ -126,6 +135,7 @@ export function SurveyQuestions({ questions, onComplete, isSubmitting }: SurveyQ
     saveCurrentResponse();
     setCurrentText('');
     setInterimText('');
+    confirmedTextRef.current = '';
     setCurrentIndex(prev => prev - 1);
   }, [saveCurrentResponse]);
 
@@ -137,7 +147,10 @@ export function SurveyQuestions({ questions, onComplete, isSubmitting }: SurveyQ
 
   const handleTranscript = useCallback((text: string, isFinal: boolean) => {
     if (isFinal) {
-      setCurrentText(prev => prev + (prev ? ' ' : '') + text);
+      // Use ref to get the latest text and append
+      const base = confirmedTextRef.current;
+      const newText = base + (base ? ' ' : '') + text;
+      setCurrentText(newText);
       setInterimText('');
       setInputMethod('voice');
     } else {
