@@ -75,6 +75,7 @@ export function SurveyQuestions({ questions, onComplete, isSubmitting }: SurveyQ
   const [responses, setResponses] = useState<Map<string, SurveyResponse>>(new Map());
   const [inputMethod, setInputMethod] = useState<InputMethod>('text');
   const [currentText, setCurrentText] = useState('');
+  const [interimText, setInterimText] = useState('');
   const [isRecording, setIsRecording] = useState(false);
 
   const currentQuestion = questions[currentIndex];
@@ -83,32 +84,34 @@ export function SurveyQuestions({ questions, onComplete, isSubmitting }: SurveyQ
   const isFirstQuestion = currentIndex === 0;
 
   const existingResponse = responses.get(currentQuestion.id);
-  const displayText = currentText || existingResponse?.responseText || '';
+  const confirmedText = currentText || existingResponse?.responseText || '';
+  const displayText = confirmedText + (interimText ? (confirmedText ? ' ' : '') + interimText : '');
 
   const saveCurrentResponse = useCallback(() => {
-    if (displayText.trim()) {
+    if (confirmedText.trim()) {
       const response: SurveyResponse = {
         questionId: currentQuestion.id,
         questionText: currentQuestion.text,
-        responseText: displayText.trim(),
+        responseText: confirmedText.trim(),
         inputMethod,
         timestamp: new Date().toISOString(),
       };
       setResponses(prev => new Map(prev).set(currentQuestion.id, response));
     }
-  }, [currentQuestion, displayText, inputMethod]);
+  }, [currentQuestion, confirmedText, inputMethod]);
 
   const handleNext = useCallback(() => {
     saveCurrentResponse();
     setCurrentText('');
-
+    setInterimText('');
+    
     if (isLastQuestion) {
       const allResponses = Array.from(responses.values());
-      if (displayText.trim()) {
+      if (confirmedText.trim()) {
         allResponses.push({
           questionId: currentQuestion.id,
           questionText: currentQuestion.text,
-          responseText: displayText.trim(),
+          responseText: confirmedText.trim(),
           inputMethod,
           timestamp: new Date().toISOString(),
         });
@@ -117,41 +120,49 @@ export function SurveyQuestions({ questions, onComplete, isSubmitting }: SurveyQ
     } else {
       setCurrentIndex(prev => prev + 1);
     }
-  }, [saveCurrentResponse, isLastQuestion, responses, displayText, currentQuestion, inputMethod, onComplete]);
+  }, [saveCurrentResponse, isLastQuestion, responses, confirmedText, currentQuestion, inputMethod, onComplete]);
 
   const handlePrevious = useCallback(() => {
     saveCurrentResponse();
     setCurrentText('');
+    setInterimText('');
     setCurrentIndex(prev => prev - 1);
   }, [saveCurrentResponse]);
 
   const handleTextChange = useCallback((_: unknown, data: { value: string }) => {
     setCurrentText(data.value);
+    setInterimText('');
     setInputMethod('text');
   }, []);
 
   const handleTranscript = useCallback((text: string, isFinal: boolean) => {
     if (isFinal) {
       setCurrentText(prev => prev + (prev ? ' ' : '') + text);
+      setInterimText('');
       setInputMethod('voice');
+    } else {
+      setInterimText(text);
     }
   }, []);
 
   const handleTextareaFocus = useCallback(() => {
     if (isRecording) {
       setIsRecording(false);
+      setInterimText('');
     }
   }, [isRecording]);
 
   const handleRecordingChange = useCallback((recording: boolean) => {
     setIsRecording(recording);
+    if (!recording) {
+      setInterimText('');
+    }
   }, []);
 
-  const canProceed = displayText.trim().length > 0 || !currentQuestion.required;
+  const canProceed = confirmedText.trim().length > 0 || !currentQuestion.required;
 
   return (
     <Card className={styles.card}>
-      {/* Progress Section */}
       <div className={styles.progressSection}>
         <div className={styles.progressLabel}>
           <Text size={200}>
@@ -164,7 +175,6 @@ export function SurveyQuestions({ questions, onComplete, isSubmitting }: SurveyQ
 
       <Divider />
 
-      {/* Question Section */}
       <div className={styles.questionSection}>
         <Text size={500} weight="semibold" block className={styles.questionText}>
           {currentQuestion.text}
@@ -172,14 +182,13 @@ export function SurveyQuestions({ questions, onComplete, isSubmitting }: SurveyQ
             <Text size={500} style={{ color: tokens.colorPaletteRedForeground1 }}> *</Text>
           )}
         </Text>
-
+        
         {currentQuestion.description && (
           <Text size={300} className={styles.questionDescription} block>
             {currentQuestion.description}
           </Text>
         )}
 
-        {/* Voice Input Button */}
         {featureFlags.enableVoiceInput && (
           <div className={styles.voiceInputSection}>
             <VoiceRecorder
@@ -190,7 +199,6 @@ export function SurveyQuestions({ questions, onComplete, isSubmitting }: SurveyQ
           </div>
         )}
 
-        {/* Text Response Area */}
         <Field label="Your response">
           <Textarea
             className={styles.responseArea}
@@ -204,7 +212,6 @@ export function SurveyQuestions({ questions, onComplete, isSubmitting }: SurveyQ
         </Field>
       </div>
 
-      {/* Navigation Actions */}
       <div className={styles.actions}>
         <div className={styles.navButtons}>
           {!isFirstQuestion && (
