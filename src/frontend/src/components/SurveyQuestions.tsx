@@ -9,14 +9,9 @@ import {
   ProgressBar,
   Field,
   Divider,
-  ToggleButton,
   Spinner,
-  Badge,
 } from '@fluentui/react-components';
 import {
-  Mic24Regular,
-  Mic24Filled,
-  TextDescription24Regular,
   ArrowLeft24Regular,
   ArrowRight24Regular,
   Checkmark24Regular,
@@ -50,16 +45,11 @@ const useStyles = makeStyles({
     color: tokens.colorNeutralForeground3,
     marginBottom: tokens.spacingVerticalL,
   },
-  inputToggle: {
-    display: 'flex',
-    gap: tokens.spacingHorizontalS,
-    marginBottom: tokens.spacingVerticalL,
+  voiceInputSection: {
+    marginBottom: tokens.spacingVerticalM,
   },
   responseArea: {
     minHeight: '150px',
-  },
-  transcriptBadge: {
-    marginTop: tokens.spacingVerticalS,
   },
   actions: {
     display: 'flex',
@@ -92,7 +82,6 @@ export function SurveyQuestions({ questions, onComplete, isSubmitting }: SurveyQ
   const isLastQuestion = currentIndex === questions.length - 1;
   const isFirstQuestion = currentIndex === 0;
 
-  // Load existing response when navigating
   const existingResponse = responses.get(currentQuestion.id);
   const displayText = currentText || existingResponse?.responseText || '';
 
@@ -114,7 +103,6 @@ export function SurveyQuestions({ questions, onComplete, isSubmitting }: SurveyQ
     setCurrentText('');
     
     if (isLastQuestion) {
-      // Compile all responses and submit
       const allResponses = Array.from(responses.values());
       if (displayText.trim()) {
         allResponses.push({
@@ -149,6 +137,16 @@ export function SurveyQuestions({ questions, onComplete, isSubmitting }: SurveyQ
     }
   }, []);
 
+  const handleTextareaFocus = useCallback(() => {
+    if (isRecording) {
+      setIsRecording(false);
+    }
+  }, [isRecording]);
+
+  const handleRecordingChange = useCallback((recording: boolean) => {
+    setIsRecording(recording);
+  }, []);
+
   const canProceed = displayText.trim().length > 0 || !currentQuestion.required;
 
   return (
@@ -181,36 +179,15 @@ export function SurveyQuestions({ questions, onComplete, isSubmitting }: SurveyQ
           </Text>
         )}
 
-        {/* Input Method Toggle */}
+        {/* Voice Input Button */}
         {featureFlags.enableVoiceInput && (
-          <div className={styles.inputToggle}>
-            <ToggleButton
-              checked={inputMethod === 'text' && !isRecording}
-              icon={<TextDescription24Regular />}
-              onClick={() => {
-                setInputMethod('text');
-                setIsRecording(false);
-              }}
-            >
-              Type response
-            </ToggleButton>
-            <ToggleButton
-              checked={inputMethod === 'voice' || isRecording}
-              icon={isRecording ? <Mic24Filled /> : <Mic24Regular />}
-              onClick={() => setInputMethod('voice')}
-              appearance={isRecording ? 'primary' : undefined}
-            >
-              {isRecording ? 'Recording...' : 'Voice input'}
-            </ToggleButton>
+          <div className={styles.voiceInputSection}>
+            <VoiceRecorder
+              onTranscript={handleTranscript}
+              onRecordingChange={handleRecordingChange}
+              isRecording={isRecording}
+            />
           </div>
-        )}
-
-        {/* Voice Recorder */}
-        {inputMethod === 'voice' && featureFlags.enableVoiceInput && (
-          <VoiceRecorder
-            onTranscript={handleTranscript}
-            onRecordingChange={setIsRecording}
-          />
         )}
 
         {/* Text Response Area */}
@@ -219,23 +196,12 @@ export function SurveyQuestions({ questions, onComplete, isSubmitting }: SurveyQ
             className={styles.responseArea}
             value={displayText}
             onChange={handleTextChange}
-            placeholder={
-              inputMethod === 'voice'
-                ? 'Your transcribed response will appear here. You can also edit it.'
-                : 'Type your response here...'
-            }
+            onFocus={handleTextareaFocus}
+            placeholder="Type your response here..."
             resize="vertical"
             size="large"
           />
         </Field>
-
-        {inputMethod === 'voice' && displayText && (
-          <div className={styles.transcriptBadge}>
-            <Badge appearance="outline" color="informative" icon={<Mic24Regular />}>
-              Transcribed from voice
-            </Badge>
-          </div>
-        )}
       </div>
 
       {/* Navigation Actions */}
