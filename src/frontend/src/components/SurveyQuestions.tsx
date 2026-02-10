@@ -77,7 +77,7 @@ export function SurveyQuestions({ questions, onComplete, isSubmitting }: SurveyQ
   const [currentText, setCurrentText] = useState('');
   const [interimText, setInterimText] = useState('');
   const [isRecording, setIsRecording] = useState(false);
-  
+
   // Ref to track the latest confirmed text for voice appending
   const confirmedTextRef = useRef('');
 
@@ -113,7 +113,7 @@ export function SurveyQuestions({ questions, onComplete, isSubmitting }: SurveyQ
     setCurrentText('');
     setInterimText('');
     confirmedTextRef.current = '';
-    
+
     if (isLastQuestion) {
       const allResponses = Array.from(responses.values());
       if (confirmedText.trim()) {
