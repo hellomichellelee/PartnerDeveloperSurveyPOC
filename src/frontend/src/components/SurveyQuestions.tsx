@@ -104,7 +104,7 @@ export function SurveyQuestions({ questions, onComplete, isSubmitting }: SurveyQ
     saveCurrentResponse();
     setCurrentText('');
     setInterimText('');
-    
+
     if (isLastQuestion) {
       const allResponses = Array.from(responses.values());
       if (confirmedText.trim()) {
@@ -182,7 +182,7 @@ export function SurveyQuestions({ questions, onComplete, isSubmitting }: SurveyQ
             <Text size={500} style={{ color: tokens.colorPaletteRedForeground1 }}> *</Text>
           )}
         </Text>
-        
+
         {currentQuestion.description && (
           <Text size={300} className={styles.questionDescription} block>
             {currentQuestion.description}
