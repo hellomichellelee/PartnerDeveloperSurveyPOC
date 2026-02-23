@@ -59,21 +59,11 @@ SQL_STATEMENTS = [
             [question_text] NVARCHAR(1000) NULL,
             [response_text] NVARCHAR(MAX) NOT NULL,
             [input_method] NVARCHAR(20) NOT NULL DEFAULT 'text',
-            [processed] BIT NOT NULL DEFAULT 0,
-            [processed_at] DATETIME2 NULL,
-            [sentiment] NVARCHAR(20) NULL,
-            [sentiment_confidence] DECIMAL(5,4) NULL,
-            [sentiment_scores_positive] DECIMAL(5,4) NULL,
-            [sentiment_scores_negative] DECIMAL(5,4) NULL,
-            [sentiment_scores_neutral] DECIMAL(5,4) NULL,
-            [key_phrases] NVARCHAR(MAX) NULL,
             [created_at] DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
             [updated_at] DATETIME2 NOT NULL DEFAULT GETUTCDATE()
         );
         CREATE INDEX [IX_responses_submission_id] ON [dbo].[responses] ([submission_id]);
         CREATE INDEX [IX_responses_question_id] ON [dbo].[responses] ([question_id]);
-        CREATE INDEX [IX_responses_processed] ON [dbo].[responses] ([processed]) WHERE [processed] = 0;
-        CREATE INDEX [IX_responses_sentiment] ON [dbo].[responses] ([sentiment]);
         CREATE INDEX [IX_responses_created_at] ON [dbo].[responses] ([created_at]);
         PRINT 'Created table: responses';
     END
@@ -129,37 +119,11 @@ SQL_STATEMENTS = [
         q.[question_text],
         r.[response_text],
         r.[input_method],
-        r.[processed],
-        r.[processed_at],
-        r.[sentiment],
-        r.[sentiment_confidence],
-        r.[key_phrases],
         r.[created_at] AS response_created_at,
         p.[created_at] AS participant_created_at
     FROM [dbo].[responses] r
     LEFT JOIN [dbo].[participants] p ON r.[submission_id] = p.[submission_id]
     LEFT JOIN [dbo].[questions] q ON r.[question_id] = q.[question_id];
-    """,
-    
-    # View for sentiment summary
-    """
-    IF EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[vw_sentiment_summary]'))
-        DROP VIEW [dbo].[vw_sentiment_summary];
-    """,
-    """
-    CREATE VIEW [dbo].[vw_sentiment_summary] AS
-    SELECT 
-        [question_id],
-        COUNT(*) AS total_responses,
-        SUM(CASE WHEN [sentiment] = 'positive' THEN 1 ELSE 0 END) AS positive_count,
-        SUM(CASE WHEN [sentiment] = 'negative' THEN 1 ELSE 0 END) AS negative_count,
-        SUM(CASE WHEN [sentiment] = 'neutral' THEN 1 ELSE 0 END) AS neutral_count,
-        SUM(CASE WHEN [sentiment] = 'mixed' THEN 1 ELSE 0 END) AS mixed_count,
-        AVG([sentiment_confidence]) AS avg_confidence,
-        SUM(CASE WHEN [processed] = 1 THEN 1 ELSE 0 END) AS processed_count,
-        SUM(CASE WHEN [processed] = 0 THEN 1 ELSE 0 END) AS pending_count
-    FROM [dbo].[responses]
-    GROUP BY [question_id];
     """
 ]
 

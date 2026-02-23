@@ -49,7 +49,6 @@ var storageAccountName = 'st${replace(baseName, '-', '')}${uniqueSuffix}'
 var sqlServerName = 'sql-${resourcePrefix}-${uniqueSuffix}'
 var sqlDatabaseName = 'sqldb-responses'
 var speechServiceName = 'speech-${resourcePrefix}'
-var languageServiceName = 'lang-${resourcePrefix}'
 
 // -----------------------------------------------------------------------------
 // Storage Account (for queue processing if needed later)
@@ -132,24 +131,6 @@ resource speechService 'Microsoft.CognitiveServices/accounts@2023-10-01-preview'
 }
 
 // -----------------------------------------------------------------------------
-// Azure Cognitive Services - Language (Free tier)
-// -----------------------------------------------------------------------------
-
-resource languageService 'Microsoft.CognitiveServices/accounts@2023-10-01-preview' = {
-  name: languageServiceName
-  location: location
-  tags: tags
-  kind: 'TextAnalytics'
-  sku: {
-    name: 'F0' // Free tier: 5,000 calls/month
-  }
-  properties: {
-    customSubDomainName: languageServiceName
-    publicNetworkAccess: 'Enabled'
-  }
-}
-
-// -----------------------------------------------------------------------------
 // Azure Static Web App (Free tier with managed functions)
 // -----------------------------------------------------------------------------
 
@@ -183,8 +164,6 @@ resource staticWebAppSettings 'Microsoft.Web/staticSites/config@2023-01-01' = {
     AZURE_SQL_CONNECTION_STRING: 'Driver={ODBC Driver 18 for SQL Server};Server=tcp:${sqlServer.properties.fullyQualifiedDomainName},1433;Database=${sqlDatabaseName};Uid=${sqlAdminLogin};Pwd=${sqlAdminPassword};Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;'
     AZURE_SPEECH_KEY: speechService.listKeys().key1
     AZURE_SPEECH_REGION: location
-    AZURE_LANGUAGE_ENDPOINT: languageService.properties.endpoint
-    AZURE_LANGUAGE_KEY: languageService.listKeys().key1
   }
 }
 
@@ -212,9 +191,6 @@ output speechServiceEndpoint string = speechService.properties.endpoint
 
 @description('Speech Service region')
 output speechServiceRegion string = location
-
-@description('Language Service endpoint')
-output languageServiceEndpoint string = languageService.properties.endpoint
 
 @description('Storage account name')
 output storageAccountName string = storageAccount.name

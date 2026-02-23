@@ -39,9 +39,7 @@ def add_response(submission_id: str, question_id: int, question_text: str, respo
         "question_id": question_id,
         "question_text": question_text,
         "response_text": response_text,
-        "input_method": input_method,
-        "sentiment": analyze_sentiment_mock(response_text),
-        "processed": True
+        "input_method": input_method
     }
     _storage["responses"].append(response)
     return response
@@ -58,42 +56,6 @@ def get_all_responses():
             result["email"] = participant["email"]
         results.append(result)
     return results
-
-def get_sentiment_summary():
-    """Get sentiment summary statistics"""
-    responses = _storage["responses"]
-    if not responses:
-        return {"total": 0, "positive": 0, "negative": 0, "neutral": 0, "mixed": 0}
-    
-    summary = {"total": len(responses), "positive": 0, "negative": 0, "neutral": 0, "mixed": 0}
-    for r in responses:
-        sentiment = r.get("sentiment", "neutral").lower()
-        if sentiment in summary:
-            summary[sentiment] += 1
-    
-    return summary
-
-def analyze_sentiment_mock(text: str) -> str:
-    """Simple mock sentiment analysis based on keywords"""
-    if not text:
-        return "neutral"
-    
-    text_lower = text.lower()
-    
-    positive_words = ["great", "excellent", "love", "amazing", "wonderful", "fantastic", "good", "best", "awesome", "happy", "recommend", "helpful", "satisfied", "impressive", "valuable"]
-    negative_words = ["bad", "terrible", "hate", "awful", "horrible", "poor", "worst", "disappointed", "frustrating", "annoying", "slow", "broken", "useless", "difficult", "confusing"]
-    
-    positive_count = sum(1 for word in positive_words if word in text_lower)
-    negative_count = sum(1 for word in negative_words if word in text_lower)
-    
-    if positive_count > 0 and negative_count > 0:
-        return "mixed"
-    elif positive_count > negative_count:
-        return "positive"
-    elif negative_count > positive_count:
-        return "negative"
-    else:
-        return "neutral"
 
 def get_questions():
     """Get all questions"""

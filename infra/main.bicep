@@ -48,7 +48,6 @@ var storageAccountName = 'st${replace(baseName, '-', '')}${uniqueSuffix}'
 var sqlServerName = 'sql-${resourcePrefix}-${uniqueSuffix}'
 var sqlDatabaseName = 'sqldb-responses'
 var speechServiceName = 'speech-${resourcePrefix}'
-var languageServiceName = 'lang-${resourcePrefix}'
 var appInsightsName = 'appi-${resourcePrefix}'
 var logAnalyticsName = 'log-${resourcePrefix}'
 
@@ -102,20 +101,7 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   }
 }
 
-// Storage Queue for async processing
-resource queueService 'Microsoft.Storage/storageAccounts/queueServices@2023-01-01' = {
-  parent: storageAccount
-  name: 'default'
-}
-
-resource processingQueue 'Microsoft.Storage/storageAccounts/queueServices/queues@2023-01-01' = {
-  parent: queueService
-  name: 'response-processing'
-}
-
-// -----------------------------------------------------------------------------
-// Azure SQL Server and Database
-// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------\n// Azure SQL Server and Database\n// -----------------------------------------------------------------------------
 
 resource sqlServer 'Microsoft.Sql/servers@2022-05-01-preview' = {
   name: sqlServerName
@@ -175,24 +161,6 @@ resource speechService 'Microsoft.CognitiveServices/accounts@2023-10-01-preview'
 }
 
 // -----------------------------------------------------------------------------
-// Azure Cognitive Services - Language (Text Analytics)
-// -----------------------------------------------------------------------------
-
-resource languageService 'Microsoft.CognitiveServices/accounts@2023-10-01-preview' = {
-  name: languageServiceName
-  location: location
-  tags: tags
-  kind: 'TextAnalytics'
-  sku: {
-    name: 'F0' // Free tier: 5,000 calls/month - sufficient for POC
-  }
-  properties: {
-    customSubDomainName: languageServiceName
-    publicNetworkAccess: 'Enabled'
-  }
-}
-
-// -----------------------------------------------------------------------------
 // Azure Static Web App
 // -----------------------------------------------------------------------------
 
@@ -225,8 +193,6 @@ resource staticWebAppSettings 'Microsoft.Web/staticSites/config@2023-01-01' = {
     AZURE_SPEECH_KEY: speechService.listKeys().key1
     AZURE_SPEECH_REGION: location
     SqlConnectionString: 'Server=tcp:${sqlServer.properties.fullyQualifiedDomainName},1433;Database=${sqlDatabaseName};User Id=${sqlAdminLogin};Password=${sqlAdminPassword};Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;'
-    AZURE_LANGUAGE_ENDPOINT: languageService.properties.endpoint
-    AZURE_LANGUAGE_KEY: languageService.listKeys().key1
   }
 }
 
@@ -251,9 +217,6 @@ output speechServiceEndpoint string = speechService.properties.endpoint
 
 @description('Speech Service region')
 output speechServiceRegion string = location
-
-@description('Language Service endpoint')
-output languageServiceEndpoint string = languageService.properties.endpoint
 
 @description('Application Insights connection string')
 output appInsightsConnectionString string = appInsights.properties.ConnectionString
