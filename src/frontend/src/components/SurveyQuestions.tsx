@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import {
   makeStyles,
+  shorthands,
   tokens,
   Card,
   Text,
@@ -21,10 +22,59 @@ import { featureFlags } from '../config/survey';
 import type { SurveyQuestion, SurveyResponse, InputMethod } from '../types';
 
 const useStyles = makeStyles({
+  container: {
+    display: 'flex',
+    flexDirection: 'column',
+    minHeight: '100vh',
+    width: '100%',
+    background: 'linear-gradient(180deg, #e3eeff 0%, #f3e7e9 100%)',
+    ...shorthands.padding('0'),
+  },
+  content: {
+    display: 'flex',
+    flexDirection: 'column',
+    ...shorthands.padding('40px', '66px', '60px', '66px'),
+    flexGrow: 1,
+    maxWidth: '900px',
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    width: '100%',
+    boxSizing: 'border-box',
+    '@media (max-width: 1024px)': {
+      ...shorthands.padding('32px', '40px', '48px', '40px'),
+    },
+    '@media (max-width: 600px)': {
+      ...shorthands.padding('24px', '24px', '32px', '24px'),
+    },
+  },
+  topicTitle: {
+    fontFamily: '"Segoe UI Variable", "Segoe UI", sans-serif',
+    fontWeight: 600,
+    fontSize: '32px',
+    lineHeight: '40px',
+    color: '#242424',
+    marginBottom: '8px',
+    '@media (max-width: 600px)': {
+      fontSize: '24px',
+      lineHeight: '32px',
+    },
+  },
+  topicIntro: {
+    fontFamily: '"Segoe UI Variable", "Segoe UI", sans-serif',
+    fontWeight: 400,
+    fontSize: '15px',
+    lineHeight: '22px',
+    color: '#424242',
+    marginBottom: '24px',
+    maxWidth: '700px',
+  },
   card: {
     maxWidth: '700px',
-    margin: '0 auto',
+    width: '100%',
     padding: tokens.spacingVerticalXL,
+    backgroundColor: 'white',
+    ...shorthands.borderRadius('12px'),
+    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.04)',
   },
   progressSection: {
     marginBottom: tokens.spacingVerticalL,
@@ -65,11 +115,13 @@ const useStyles = makeStyles({
 
 interface SurveyQuestionsProps {
   questions: SurveyQuestion[];
+  topicTitle?: string;
+  topicIntro?: string;
   onComplete: (responses: SurveyResponse[]) => void;
   isSubmitting: boolean;
 }
 
-export function SurveyQuestions({ questions, onComplete, isSubmitting }: SurveyQuestionsProps) {
+export function SurveyQuestions({ questions, topicTitle, topicIntro, onComplete, isSubmitting }: SurveyQuestionsProps) {
   const styles = useStyles();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [responses, setResponses] = useState<Map<string, SurveyResponse>>(new Map());
@@ -175,81 +227,95 @@ export function SurveyQuestions({ questions, onComplete, isSubmitting }: SurveyQ
   const canProceed = confirmedText.trim().length > 0 || !currentQuestion.required;
 
   return (
-    <Card className={styles.card}>
-      <div className={styles.progressSection}>
-        <div className={styles.progressLabel}>
-          <Text size={200}>
-            Question {currentIndex + 1} of {questions.length}
-          </Text>
-          <Text size={200}>{Math.round(progress)}% complete</Text>
-        </div>
-        <ProgressBar value={progress / 100} thickness="large" />
-      </div>
-
-      <Divider />
-
-      <div className={styles.questionSection}>
-        <Text size={500} weight="semibold" block className={styles.questionText}>
-          {currentQuestion.text}
-          {currentQuestion.required && (
-            <Text size={500} style={{ color: tokens.colorPaletteRedForeground1 }}> *</Text>
-          )}
-        </Text>
-
-        {currentQuestion.description && (
-          <Text size={300} className={styles.questionDescription} block>
-            {currentQuestion.description}
+    <div className={styles.container}>
+      <div className={styles.content}>
+        {topicTitle && (
+          <Text as="h1" className={styles.topicTitle}>
+            {topicTitle}
           </Text>
         )}
-
-        {featureFlags.enableVoiceInput && (
-          <div className={styles.voiceInputSection}>
-            <VoiceRecorder
-              onTranscript={handleTranscript}
-              onRecordingChange={handleRecordingChange}
-              isRecording={isRecording}
-            />
+        {topicIntro && (
+          <Text as="p" className={styles.topicIntro}>
+            {topicIntro}
+          </Text>
+        )}
+        <Card className={styles.card}>
+          <div className={styles.progressSection}>
+            <div className={styles.progressLabel}>
+              <Text size={200}>
+                Question {currentIndex + 1} of {questions.length}
+              </Text>
+              <Text size={200}>{Math.round(progress)}% complete</Text>
+            </div>
+            <ProgressBar value={progress / 100} thickness="large" />
           </div>
-        )}
 
-        <Field label="Your response">
-          <Textarea
-            className={styles.responseArea}
-            value={displayText}
-            onChange={handleTextChange}
-            onFocus={handleTextareaFocus}
-            placeholder="Type your response here..."
-            resize="vertical"
-            size="large"
-          />
-        </Field>
-      </div>
+          <Divider />
 
-      <div className={styles.actions}>
-        <div className={styles.navButtons}>
-          {!isFirstQuestion && (
+          <div className={styles.questionSection}>
+            <Text size={500} weight="semibold" block className={styles.questionText}>
+              {currentQuestion.text}
+              {currentQuestion.required && (
+                <Text size={500} style={{ color: tokens.colorPaletteRedForeground1 }}> *</Text>
+              )}
+            </Text>
+
+            {currentQuestion.description && (
+              <Text size={300} className={styles.questionDescription} block>
+                {currentQuestion.description}
+              </Text>
+            )}
+
+            {featureFlags.enableVoiceInput && (
+              <div className={styles.voiceInputSection}>
+                <VoiceRecorder
+                  onTranscript={handleTranscript}
+                  onRecordingChange={handleRecordingChange}
+                  isRecording={isRecording}
+                />
+              </div>
+            )}
+
+            <Field label="Your response">
+              <Textarea
+                className={styles.responseArea}
+                value={displayText}
+                onChange={handleTextChange}
+                onFocus={handleTextareaFocus}
+                placeholder="Type your response here..."
+                resize="vertical"
+                size="large"
+              />
+            </Field>
+          </div>
+
+          <div className={styles.actions}>
+            <div className={styles.navButtons}>
+              {!isFirstQuestion && (
+                <Button
+                  appearance="subtle"
+                  icon={<ArrowLeft24Regular />}
+                  onClick={handlePrevious}
+                  disabled={isSubmitting}
+                >
+                  Previous
+                </Button>
+              )}
+            </div>
+
             <Button
-              appearance="subtle"
-              icon={<ArrowLeft24Regular />}
-              onClick={handlePrevious}
-              disabled={isSubmitting}
+              appearance="primary"
+              size="large"
+              icon={isLastQuestion ? (isSubmitting ? <Spinner size="tiny" /> : <Checkmark24Regular />) : <ArrowRight24Regular />}
+              iconPosition="after"
+              onClick={handleNext}
+              disabled={!canProceed || isSubmitting}
             >
-              Previous
+              {isLastQuestion ? (isSubmitting ? 'Submitting...' : 'Submit Responses') : 'Next Question'}
             </Button>
-          )}
-        </div>
-
-        <Button
-          appearance="primary"
-          size="large"
-          icon={isLastQuestion ? (isSubmitting ? <Spinner size="tiny" /> : <Checkmark24Regular />) : <ArrowRight24Regular />}
-          iconPosition="after"
-          onClick={handleNext}
-          disabled={!canProceed || isSubmitting}
-        >
-          {isLastQuestion ? (isSubmitting ? 'Submitting...' : 'Submit Survey') : 'Next Question'}
-        </Button>
+          </div>
+        </Card>
       </div>
-    </Card>
+    </div>
   );
 }

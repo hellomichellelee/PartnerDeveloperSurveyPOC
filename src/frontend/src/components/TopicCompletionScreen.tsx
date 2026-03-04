@@ -1,12 +1,16 @@
 import {
   makeStyles,
   shorthands,
-  tokens,
   Card,
   Text,
   Button,
+  tokens,
 } from '@fluentui/react-components';
-import { CheckmarkCircle48Regular, ArrowReset24Regular } from '@fluentui/react-icons';
+import {
+  CheckmarkCircle48Regular,
+  GridDots20Regular,
+  ArrowExit20Regular,
+} from '@fluentui/react-icons';
 
 const useStyles = makeStyles({
   container: {
@@ -47,26 +51,31 @@ const useStyles = makeStyles({
     lineHeight: '22px',
     fontFamily: '"Segoe UI Variable", "Segoe UI", sans-serif',
   },
-  subtitle: {
-    color: '#8a8a8a',
-    fontFamily: '"Segoe UI Variable", "Segoe UI", sans-serif',
-  },
   actions: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    ...shorthands.gap('12px'),
     marginTop: tokens.spacingVerticalXL,
   },
 });
 
-interface CompletionScreenProps {
-  participantName: string;
-  completedTopicCount?: number;
+interface TopicCompletionScreenProps {
+  topicTitle: string;
+  completedCount: number;
+  totalTopics: number;
+  onSelectAnotherTopic: () => void;
+  onEndSurvey: () => void;
 }
 
-export function CompletionScreen({ participantName, completedTopicCount }: CompletionScreenProps) {
+export function TopicCompletionScreen({
+  topicTitle,
+  completedCount,
+  totalTopics,
+  onSelectAnotherTopic,
+  onEndSurvey,
+}: TopicCompletionScreenProps) {
   const styles = useStyles();
-
-  const handleStartNew = () => {
-    window.location.reload();
-  };
 
   return (
     <div className={styles.container}>
@@ -74,28 +83,34 @@ export function CompletionScreen({ participantName, completedTopicCount }: Compl
         <CheckmarkCircle48Regular className={styles.icon} />
         
         <Text size={700} weight="semibold" block className={styles.title}>
-          Thank you, {participantName}!
+          Thanks for your feedback on {topicTitle}!
         </Text>
         
         <Text size={400} block className={styles.message}>
-          Your feedback has been successfully submitted.
-          {completedTopicCount !== undefined && completedTopicCount > 0 && (
-            <> You provided feedback on {completedTopicCount} topic{completedTopicCount !== 1 ? 's' : ''}.</>
-          )}
-          {' '}Your responses will help us improve Dragon admin center.
-        </Text>
-
-        <Text size={300} block className={styles.subtitle}>
-          You can now close this window or start a new survey.
+          Your responses for this topic have been saved. You&apos;ve completed {completedCount} of {totalTopics} topics.
+          {completedCount < totalTopics
+            ? ' You can select another topic to continue providing feedback, or finish the survey.'
+            : ' You\'ve covered all topics! You can finish the survey now.'}
         </Text>
 
         <div className={styles.actions}>
+          {completedCount < totalTopics && (
+            <Button
+              appearance="primary"
+              size="large"
+              icon={<GridDots20Regular />}
+              onClick={onSelectAnotherTopic}
+            >
+              Select another topic
+            </Button>
+          )}
           <Button
-            appearance="subtle"
-            icon={<ArrowReset24Regular />}
-            onClick={handleStartNew}
+            appearance={completedCount >= totalTopics ? 'primary' : 'outline'}
+            size="large"
+            icon={<ArrowExit20Regular />}
+            onClick={onEndSurvey}
           >
-            Start New Survey
+            Finish survey
           </Button>
         </div>
       </Card>

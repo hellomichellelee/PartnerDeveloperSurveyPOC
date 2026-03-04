@@ -13,11 +13,12 @@
 }
 
 html {
-  /* Fluent 2 uses system font stack for cross-platform consistency */
-  font-family: 'Segoe UI', 'Segoe UI Web (West European)', -apple-system, 
-    BlinkMacSystemFont, Roboto, 'Helvetica Neue', sans-serif;
+  /* Fluent 2 uses Segoe UI Variable for optimal typography */
+  font-family: 'Segoe UI Variable', 'Segoe UI', system-ui, -apple-system, sans-serif;
   font-size: 14px; /* Body 1 base size */
   line-height: 20px;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

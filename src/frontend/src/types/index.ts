@@ -2,7 +2,7 @@
 // Type Definitions for Research Feedback Platform
 // =============================================================================
 
-export type SurveyStep = 'consent' | 'participant' | 'questions' | 'complete';
+export type SurveyStep = 'consent' | 'participant' | 'topics' | 'questions' | 'topicComplete' | 'complete';
 
 export type InputMethod = 'voice' | 'text';
 
@@ -18,6 +18,7 @@ export interface SurveyQuestion {
   id: string;
   text: string;
   description?: string;
+  context?: string;
   required?: boolean;
 }
 
@@ -27,12 +28,24 @@ export interface SurveyResponse {
   responseText: string;
   inputMethod: InputMethod;
   timestamp: string;
+  topicId?: string;
+}
+
+export interface SurveyTopic {
+  id: string;
+  title: string;
+  description: string;
+  intro: string;
+  icon: string; // icon name key
+  questions: SurveyQuestion[];
 }
 
 export interface SurveyConfig {
   title: string;
   description: string;
   consentText: string;
+  topics: SurveyTopic[];
+  /** @deprecated Use topics[].questions instead */
   questions: SurveyQuestion[];
 }
 
