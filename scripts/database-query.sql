@@ -1,4 +1,5 @@
 
-SELECT *
+
+SELECT*
 FROM dbo.responses;
 

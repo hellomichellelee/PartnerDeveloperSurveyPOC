@@ -66,10 +66,15 @@ function App() {
   const handleTopicQuestionsComplete = useCallback(async (topicResponses: SurveyResponse[]) => {
     setIsSubmitting(true);
 
-    // Tag responses with the topic ID
+    // Resolve the current topic for the short label
+    const currentTopic = surveyConfig.topics.find(t => t.id === selectedTopicId);
+    const topicLabel = currentTopic?.topic || '';
+
+    // Tag responses with the topic ID and short topic label
     const taggedResponses = topicResponses.map(r => ({
       ...r,
       topicId: selectedTopicId || undefined,
+      topic: topicLabel,
     }));
 
     try {
@@ -80,12 +85,14 @@ function App() {
           consentGiven: true,
         },
         topicId: selectedTopicId,
+        topic: topicLabel,
         responses: taggedResponses.map(r => ({
           questionId: r.questionId,
           questionText: r.questionText,
           responseText: r.responseText,
           inputMethod: r.inputMethod,
           topicId: r.topicId,
+          topic: r.topic,
         })),
         submittedAt: new Date().toISOString(),
       };
@@ -103,7 +110,7 @@ function App() {
       }
     } catch (error) {
       console.error('Submission error:', error);
-      
+
       // Store locally as fallback
       localStorage.setItem(`survey_${submissionId}_${selectedTopicId}`, JSON.stringify({
         participant,

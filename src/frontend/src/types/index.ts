@@ -29,11 +29,13 @@ export interface SurveyResponse {
   inputMethod: InputMethod;
   timestamp: string;
   topicId?: string;
+  topic?: string;
 }
 
 export interface SurveyTopic {
   id: string;
   title: string;
+  topic: string; // Short single-word label for DB storage
   description: string;
   intro: string;
   icon: string; // icon name key

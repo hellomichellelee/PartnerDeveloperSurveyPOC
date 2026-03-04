@@ -35,9 +35,10 @@ def save_to_database(submission_id: str, participant: dict, responses: list) -> 
         for response in responses:
             cursor.execute(
                 """INSERT INTO responses 
-                   (submission_id, question_id, question_text, response_text, input_method) 
-                   VALUES (%s, %s, %s, %s, %s)""",
-                (submission_id, response.get('questionId'), 
+                   (submission_id, topic, question_id, question_text, response_text, input_method) 
+                   VALUES (%s, %s, %s, %s, %s, %s)""",
+                (submission_id, response.get('topic', ''),
+                 response.get('questionId'), 
                  response.get('questionText', ''), response.get('responseText'),
                  response.get('inputMethod', 'text'))
             )
@@ -66,7 +67,8 @@ def save_to_memory(submission_id: str, participant: dict, responses: list):
             question_id=response.get('questionId', 0),
             question_text=response.get('questionText', ''),
             response_text=response.get('responseText', ''),
-            input_method=response.get('inputMethod', 'text')
+            input_method=response.get('inputMethod', 'text'),
+            topic=response.get('topic', '')
         )
 
 

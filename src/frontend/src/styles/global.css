@@ -15,7 +15,8 @@
 html {
   /* Fluent 2 uses Segoe UI Variable for optimal typography */
   font-family: 'Segoe UI Variable', 'Segoe UI', system-ui, -apple-system, sans-serif;
-  font-size: 14px; /* Body 1 base size */
+  font-size: 14px;
+  /* Body 1 base size */
   line-height: 20px;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -47,6 +48,7 @@ body {
 
 /* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {

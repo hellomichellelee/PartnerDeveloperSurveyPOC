@@ -55,6 +55,7 @@ SQL_STATEMENTS = [
         CREATE TABLE [dbo].[responses] (
             [id] INT IDENTITY(1,1) PRIMARY KEY,
             [submission_id] UNIQUEIDENTIFIER NOT NULL,
+            [topic] NVARCHAR(50) NULL,
             [question_id] NVARCHAR(50) NOT NULL,
             [question_text] NVARCHAR(1000) NULL,
             [response_text] NVARCHAR(MAX) NOT NULL,
@@ -63,6 +64,7 @@ SQL_STATEMENTS = [
             [updated_at] DATETIME2 NOT NULL DEFAULT GETUTCDATE()
         );
         CREATE INDEX [IX_responses_submission_id] ON [dbo].[responses] ([submission_id]);
+        CREATE INDEX [IX_responses_topic] ON [dbo].[responses] ([topic]);
         CREATE INDEX [IX_responses_question_id] ON [dbo].[responses] ([question_id]);
         CREATE INDEX [IX_responses_created_at] ON [dbo].[responses] ([created_at]);
         PRINT 'Created table: responses';
@@ -76,6 +78,7 @@ SQL_STATEMENTS = [
         CREATE TABLE [dbo].[questions] (
             [id] INT IDENTITY(1,1) PRIMARY KEY,
             [question_id] NVARCHAR(50) NOT NULL,
+            [topic] NVARCHAR(50) NOT NULL DEFAULT '',
             [question_text] NVARCHAR(1000) NOT NULL,
             [question_order] INT NOT NULL DEFAULT 0,
             [is_active] BIT NOT NULL DEFAULT 1,
@@ -91,13 +94,42 @@ SQL_STATEMENTS = [
     """
     IF NOT EXISTS (SELECT 1 FROM [dbo].[questions])
     BEGIN
-        INSERT INTO [dbo].[questions] ([question_id], [question_text], [question_order])
+        INSERT INTO [dbo].[questions] ([question_id], [topic], [question_text], [question_order])
         VALUES 
-            ('q1', 'What was your overall experience using the product?', 1),
-            ('q2', 'What features did you find most useful?', 2),
-            ('q3', 'What challenges or frustrations did you encounter?', 3),
-            ('q4', 'What improvements would you suggest?', 4),
-            ('q5', 'Would you recommend this product to others? Why or why not?', 5);
+            ('prov-1', 'Provisioning', 'Can you describe what the provisioning experience was like for you?', 1),
+            ('prov-2', 'Provisioning', 'Was there any part of the Provision process that felt unclear to you?', 2),
+            ('prov-3', 'Provisioning', 'Is the term provision something you were familiar with?', 3),
+            ('prov-4', 'Provisioning', 'How does this new process compare to how you rolled out features in NMC?', 4),
+            ('env-1', 'Environments', 'What kinds of organizational structures or IT management needs do you expect your environment structure to reflect?', 5),
+            ('env-2', 'Environments', 'What kinds of scenarios require you to create, manage, or modify environments?', 6),
+            ('env-3', 'Environments', 'Do you think having the ability to create multiple environments in DAC is useful?', 7),
+            ('org-1', 'Organizations', 'How do you feel about organization units?', 8),
+            ('org-2', 'Organizations', 'Have you taken advantage of this flexibility?', 9),
+            ('org-3', 'Organizations', 'How could the interface make it easier to find or manage your hierarchy?', 10),
+            ('org-4', 'Organizations', 'What kinds of scenarios require you to create, manage, or modify org units?', 11),
+            ('org-5', 'Organizations', 'Did you encounter any unexpected behavior with Org Units?', 12),
+            ('txt-1', 'Texts', 'What types of texts do you manage for your organization?', 13),
+            ('txt-2', 'Texts', 'Describe how you would add or modify a Text in DAC.', 14),
+            ('txt-3', 'Texts', 'Is it clear how to manage the scope of a Text?', 15),
+            ('txt-4', 'Texts', 'Have you made use of organization-level or unit-level text capability?', 16),
+            ('txt-5', 'Texts', 'Do you use the cut/copy/paste feature for texts across Organization units?', 17),
+            ('prm-1', 'Prompts', 'Have you explored the Prompts feature in DAC?', 18),
+            ('prm-2', 'Prompts', 'What Prompts have you tried to create or use?', 19),
+            ('prm-3', 'Prompts', 'Do you have concerns about managing AI prompts for your users?', 20),
+            ('prm-4', 'Prompts', 'What scenarios might cause you to add, edit, or delete prompts?', 21),
+            ('voc-1', 'Vocabulary', 'Have you worked with vocabulary items in DAC?', 22),
+            ('voc-2', 'Vocabulary', 'What kinds of tasks do you normally do with custom vocabulary?', 23),
+            ('voc-3', 'Vocabulary', 'Is the organization/unit-level vocabulary flexibility something you use?', 24),
+            ('voc-4', 'Vocabulary', 'How many vocabulary items do you manage?', 25),
+            ('wf-1', 'Workflows', 'Have you accessed or managed any Workflows in DAC?', 26),
+            ('wf-2', 'Workflows', 'What was your experience creating workflows?', 27),
+            ('wf-3', 'Workflows', 'What kinds of workflows do you manage?', 28),
+            ('wf-4', 'Workflows', 'How often do you update multi-step Workflows?', 29),
+            ('set-1', 'Settings', 'Were you able to find where to manage global settings in DAC?', 30),
+            ('set-2', 'Settings', 'Is it clear how to change a setting for a subset of users?', 31),
+            ('set-3', 'Settings', 'How do you feel about the organization-unit level settings override?', 32),
+            ('set-4', 'Settings', 'Have you utilized locking for settings?', 33),
+            ('set-5', 'Settings', 'Are there settings you expected to find in DAC that you have not?', 34);
         PRINT 'Inserted default survey questions';
     END
     """,
@@ -115,6 +147,7 @@ SQL_STATEMENTS = [
         p.[first_name],
         p.[last_name],
         p.[email],
+        r.[topic],
         r.[question_id],
         q.[question_text],
         r.[response_text],

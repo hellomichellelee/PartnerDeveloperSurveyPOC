@@ -72,11 +72,11 @@ export function CompletionScreen({ participantName, completedTopicCount }: Compl
     <div className={styles.container}>
       <Card className={styles.card}>
         <CheckmarkCircle48Regular className={styles.icon} />
-        
+
         <Text size={700} weight="semibold" block className={styles.title}>
           Thank you, {participantName}!
         </Text>
-        
+
         <Text size={400} block className={styles.message}>
           Your feedback has been successfully submitted.
           {completedTopicCount !== undefined && completedTopicCount > 0 && (

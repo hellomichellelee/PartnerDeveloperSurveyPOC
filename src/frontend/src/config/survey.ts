@@ -7,7 +7,7 @@ import type { SurveyConfig } from '../types';
 export const surveyConfig: SurveyConfig = {
   title: 'Dragon admin center',
   description: 'Share your valuable feedback to help us improve Dragon admin center.',
-  
+
   consentText: `By participating in this survey, I confirm that:
 
 • I have read and understand the purpose of this research study.
@@ -26,6 +26,7 @@ I voluntarily agree to participate in this research study.`,
     {
       id: 'provisioning',
       title: 'Provisioning',
+      topic: 'Provisioning',
       description: 'Provisioning is the process that sets up an application for an environment, like turning on Dragon Copilot in Production so its features become available to assigned users.',
       intro: "This section gathers your feedback on provisioning in Dragon admin center—the process that prepares an application for use in an environment. Provisioning 'sets up the Dragon Copilot application within the selected environment'.",
       icon: 'CheckmarkCircle',
@@ -56,6 +57,7 @@ I voluntarily agree to participate in this research study.`,
     {
       id: 'environments',
       title: 'Environments',
+      topic: 'Environments',
       description: 'Environments are separate spaces, like Test or Production, where you configure and manage applications, settings, and access without affecting other spaces.',
       intro: "We'd like your input on environment management in Dragon admin center—creating and managing environments for testing, production, or department-specific needs to ensure applications, configurations, and access are properly controlled.",
       icon: 'GlobeSurface',
@@ -80,6 +82,7 @@ I voluntarily agree to participate in this research study.`,
     {
       id: 'organization-units',
       title: 'Organization units',
+      topic: 'Organizations',
       description: 'Organizational Units are structural groupings, such as facilities, departments, or teams, used to organize users and control how settings and permissions are applied.',
       intro: "Organizational Units are structural groupings, such as facilities, departments, or teams, used to organize users and control how settings and permissions are applied. In Nuance management center (NMC), the hierarchy was strictly Organization > Sites > Groups. In DAC, you have more freedom (multiple layers of Organization units without fixed 'site' or 'group' labels).",
       icon: 'Organization',
@@ -114,6 +117,7 @@ I voluntarily agree to participate in this research study.`,
     {
       id: 'library-texts',
       title: 'Library items: Texts',
+      topic: 'Texts',
       description: 'Texts are predefined content snippets inserted with keywords during clinical documentation—such as inserting a standard discharge summary when a clinician says "add discharge note."',
       intro: 'Texts are reusable documentation snippets, like a standard discharge summary—"Patient stable and ready for home"—that clinicians insert with a voice command, such as "Discharge summary", in Dragon Copilot. In NMC these were Auto-texts tied to Sites/Groups; DAC lets you manage and scope them flexibly across Organization units.',
       icon: 'Library',
@@ -148,6 +152,7 @@ I voluntarily agree to participate in this research study.`,
     {
       id: 'library-prompts',
       title: 'Library items: Prompts',
+      topic: 'Prompts',
       description: 'Prompts are custom instructions for common clinical scenarios that tailor AI-generated responses when clinicians interact with chat—for example, guiding Copilot to summarize a medication list when a clinician types "summarize meds."',
       intro: "Prompts are customizable AI requests—like 'Generate a structured assessment and plan'—that clinicians trigger in Dragon Copilot. In DAC, admins can tune each Prompt by shaping the instruction, required inputs, and desired clinical tone, ensuring the AI produces responses that match organizational standards.",
       icon: 'Library',
@@ -177,6 +182,7 @@ I voluntarily agree to participate in this research study.`,
     {
       id: 'library-vocabulary',
       title: 'Library items: Vocabulary',
+      topic: 'Vocabulary',
       description: 'Vocabulary items add domain-specific medical terms and spoken forms to improve speech-to-text recognition accuracy in Dragon Copilot—for instance, teaching the system terms like "high blood sugar" or "hyper-gly-cee-mee-ah."',
       intro: "Vocabulary items are custom words or phrases—such as 'hypertensive crisis' and its synonym 'malignant hypertension,' or the abbreviation 'HTN'—that ensure Dragon Copilot correctly recognizes the terminology clinicians use. In NMC, Words were tied to Sites/Groups; DAC lets you apply them globally or to specific Organization units.",
       icon: 'Library',
@@ -206,6 +212,7 @@ I voluntarily agree to participate in this research study.`,
     {
       id: 'library-workflows',
       title: 'Library items: Workflows',
+      topic: 'Workflows',
       description: 'Workflows are automated step-by-step sequences that enable Dragon Copilot to carry out multi-step tasks for clinicians based on a keyword or phrase—such as opening a lab results section and inserting findings when the clinician says "document labs."',
       intro: "Workflows automate multi-step actions—such as turning off the mic, copying selected text, and inserting a note—when a clinician says a spoken command like 'End session.' NMC's Step-by-Step Commands become centralized, Organization-Unit-scoped Workflows in DAC.",
       icon: 'Library',
@@ -235,6 +242,7 @@ I voluntarily agree to participate in this research study.`,
     {
       id: 'application-settings',
       title: 'Application settings',
+      topic: 'Settings',
       description: 'Application settings control how Dragon Copilot features and permissions behave across different levels in an environment, including the organization, its organizational units, and individual users.',
       intro: "Application settings control how an application, such as Dragon Copilot, behaves for different environments and organization units—such as enabling AI summaries or restricting certain features. DAC uses a clear inheritance model so settings can be managed globally or customized for specific Organization units.",
       icon: 'Settings',

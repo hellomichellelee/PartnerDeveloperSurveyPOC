@@ -56,6 +56,7 @@ BEGIN
     (
         [id] INT IDENTITY(1,1) PRIMARY KEY,
         [submission_id] UNIQUEIDENTIFIER NOT NULL,
+        [topic] NVARCHAR(50) NULL,
         [question_id] NVARCHAR(50) NOT NULL,
         [question_text] NVARCHAR(1000) NULL,
         [response_text] NVARCHAR(MAX) NOT NULL,
@@ -75,6 +76,7 @@ BEGIN
     );
 
     CREATE INDEX [IX_responses_submission_id] ON [dbo].[responses] ([submission_id]);
+    CREATE INDEX [IX_responses_topic] ON [dbo].[responses] ([topic]);
     CREATE INDEX [IX_responses_question_id] ON [dbo].[responses] ([question_id]);
     CREATE INDEX [IX_responses_created_at] ON [dbo].[responses] ([created_at]);
 
@@ -95,6 +97,7 @@ BEGIN
     (
         [id] INT IDENTITY(1,1) PRIMARY KEY,
         [question_id] NVARCHAR(50) NOT NULL,
+        [topic] NVARCHAR(50) NOT NULL DEFAULT '',
         [question_text] NVARCHAR(1000) NOT NULL,
         [question_order] INT NOT NULL DEFAULT 0,
         [is_active] BIT NOT NULL DEFAULT 1,
@@ -116,13 +119,42 @@ IF NOT EXISTS (SELECT 1
 FROM [dbo].[questions])
 BEGIN
     INSERT INTO [dbo].[questions]
-        ([question_id], [question_text], [question_order])
+        ([question_id], [topic], [question_text], [question_order])
     VALUES
-        ('q1', 'What was your overall experience using the product?', 1),
-        ('q2', 'What features did you find most useful?', 2),
-        ('q3', 'What challenges or frustrations did you encounter?', 3),
-        ('q4', 'What improvements would you suggest?', 4),
-        ('q5', 'Would you recommend this product to others? Why or why not?', 5);
+        ('prov-1', 'Provisioning', 'Can you describe what the provisioning experience was like for you?', 1),
+        ('prov-2', 'Provisioning', 'Was there any part of the Provision process that felt unclear to you?', 2),
+        ('prov-3', 'Provisioning', 'Is the term provision something you were familiar with, or is it a concept you don''t encounter frequently?', 3),
+        ('prov-4', 'Provisioning', 'How does this new process compare to how you rolled out features in NMC?', 4),
+        ('env-1', 'Environments', 'What kinds of organizational structures or IT management needs do you expect your environment structure to reflect?', 5),
+        ('env-2', 'Environments', 'What kinds of scenarios require you to create, manage, or modify environments? How frequently do you conduct this type of work?', 6),
+        ('env-3', 'Environments', 'Do you think having the ability to create multiple environments in DAC is useful for your organization''s workflows?', 7),
+        ('org-1', 'Organizations', 'How do you feel about organization units? Do they make organizing users and resources easier or harder for you?', 8),
+        ('org-2', 'Organizations', 'Have you taken advantage of this flexibility? For example, have you restructured or added new Organization units?', 9),
+        ('org-3', 'Organizations', 'How could the interface make it easier to find or manage your hierarchy?', 10),
+        ('org-4', 'Organizations', 'What kinds of scenarios require you to create, manage, or modify org units? How frequently do you conduct this type of work?', 11),
+        ('org-5', 'Organizations', 'Did you encounter any unexpected behavior or things you''d like to change about how Org Units work?', 12),
+        ('txt-1', 'Texts', 'What types of texts do you manage for your organization? How often do you create or edit these?', 13),
+        ('txt-2', 'Texts', 'Describe how you would add or modify a Text in DAC. Was it easy to do? Any challenges you encountered?', 14),
+        ('txt-3', 'Texts', 'Is it clear how to manage the scope of a Text?', 15),
+        ('txt-4', 'Texts', 'In Dragon admin center, texts can be defined at the organization-level or specified for a specific organization unit. Have you made use of that capability?', 16),
+        ('txt-5', 'Texts', 'DAC supports cutting or copying a text from one Organization unit and pasting it into another. Do you use this feature?', 17),
+        ('prm-1', 'Prompts', 'Prompts act as custom templates for frequent AI-generated content in Dragon Copilot. Have you explored the Prompts feature?', 18),
+        ('prm-2', 'Prompts', 'What Prompts have you tried to create or use? How was the process of creating a custom prompt in DAC?', 19),
+        ('prm-3', 'Prompts', 'Do you have any concerns or uncertainty about how you''d manage or govern these AI prompts for your users?', 20),
+        ('prm-4', 'Prompts', 'What scenarios might cause you to add, edit, or delete prompts? How frequently would you expect to encounter these scenarios?', 21),
+        ('voc-1', 'Vocabulary', 'Have you worked with vocabulary items in DAC? How has your experience been?', 22),
+        ('voc-2', 'Vocabulary', 'What kinds of tasks do you normally do with custom vocabulary? Have you done any of those in DAC yet?', 23),
+        ('voc-3', 'Vocabulary', 'DAC lets you apply custom vocabulary at the organization-level or to a specific organization unit. Is this flexibility something you''ve used or plan to use?', 24),
+        ('voc-4', 'Vocabulary', 'How many vocabulary items do you manage for your organization? Can you describe how they are scoped?', 25),
+        ('wf-1', 'Workflows', 'NMC Step-by-Step Commands are now called Workflows in DAC. Have you accessed or managed any Workflows?', 26),
+        ('wf-2', 'Workflows', 'What was your experience like? (E.g., creating a multi-step sequence, setting a spoken trigger phrase, etc.)', 27),
+        ('wf-3', 'Workflows', 'What kinds of workflows do you manage for your organization? How many workflows? What are some common use cases?', 28),
+        ('wf-4', 'Workflows', 'How often do you typically use or update these kinds of multi-step Workflows in administration?', 29),
+        ('set-1', 'Settings', 'Were you able to find where to manage global settings for your organization in DAC?', 30),
+        ('set-2', 'Settings', 'Is it clear how you would change a particular setting for only a subset of users in DAC?', 31),
+        ('set-3', 'Settings', 'In NMC, settings could be applied at the site or group level. In DAC, you can override at a lower level. How do you feel about this?', 32),
+        ('set-4', 'Settings', 'Have you utilized locking for settings? Do you have any concerns about how it works?', 33),
+        ('set-5', 'Settings', 'Are there any settings or configuration options you expected to find in DAC that you haven''t found yet?', 34);
 
     PRINT 'Inserted default survey questions';
 END
@@ -147,6 +179,7 @@ AS
         p.[first_name],
         p.[last_name],
         p.[email],
+        r.[topic],
         r.[question_id],
         q.[question_text],
         r.[response_text],

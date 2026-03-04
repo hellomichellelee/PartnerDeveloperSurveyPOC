@@ -32,10 +32,11 @@ def add_participant(submission_id: str, first_name: str, last_name: str, email: 
     _storage["participants"].append(participant)
     return participant
 
-def add_response(submission_id: str, question_id: int, question_text: str, response_text: str, input_method: str = "text"):
+def add_response(submission_id: str, question_id: int, question_text: str, response_text: str, input_method: str = "text", topic: str = ""):
     """Add a response to storage"""
     response = {
         "submission_id": submission_id,
+        "topic": topic,
         "question_id": question_id,
         "question_text": question_text,
         "response_text": response_text,
