@@ -1,4 +1,14 @@
-topics: [
+import type { SurveyConfig } from '../types';
+
+export const surveyConfig: SurveyConfig = {
+  title: 'Dragon Copilot Partner Developer Survey',
+  description: 'Share your feedback on the Dragon Copilot partner developer experience.',
+  consentText:
+    'By participating in this survey, you consent to your responses being collected and analyzed ' +
+    'for research purposes. Your responses will be kept confidential and used only to improve the ' +
+    'Dragon Copilot partner developer experience. You may withdraw at any time.',
+  questions: [], // Deprecated – use topics[].questions instead
+  topics: [
   {
     id: 'partner-context',
     title: 'About You and Your Project',
@@ -215,4 +225,20 @@ topics: [
       },
     ],
   },
-]
+],
+};
+
+// Azure Speech SDK configuration
+export const azureConfig = {
+  speech: {
+    subscriptionKey: import.meta.env.VITE_AZURE_SPEECH_KEY || '',
+    region: import.meta.env.VITE_AZURE_SPEECH_REGION || 'eastus',
+    language: import.meta.env.VITE_AZURE_SPEECH_LANGUAGE || 'en-US',
+  },
+};
+
+// Feature flags
+export const featureFlags = {
+  enableVoiceInput: true,
+  enableRealTimeTranscription: true,
+};
