@@ -1,303 +1,218 @@
-import type { SurveyConfig } from '../types';
-
-// =============================================================================
-// Survey Configuration
-// =============================================================================
-
-export const surveyConfig: SurveyConfig = {
-  title: 'Dragon admin center',
-  description: 'Share your valuable feedback to help us improve Dragon admin center.',
-
-  consentText: `By participating in this survey, I confirm that:
-
-• I have read and understand the purpose of this research study.
-• I understand that my audio recordings and written responses will be used for internal UX research purposes.
-• My responses may be processed by automated Azure AI systems for transcription, sentiment analysis, and topic extraction.
-• I can withdraw from this study at any time without providing a reason.
-• My personal information will be handled in accordance with Microsoft's privacy policy.
-• I am 18 years of age or older.
-
-I voluntarily agree to participate in this research study.`,
-
-  // Legacy flat questions array (kept for backward compat — prefer topics)
-  questions: [],
-
-  topics: [
-    {
-      id: 'provisioning',
-      title: 'Provisioning',
-      topic: 'Provisioning',
-      description: 'Provisioning is the process that sets up an application for an environment, like turning on Dragon Copilot in Production so its features become available to assigned users.',
-      intro: "This section gathers your feedback on provisioning in Dragon admin center—the process that prepares an application for use in an environment. Provisioning 'sets up the Dragon Copilot application within the selected environment'.",
-      icon: 'CheckmarkCircle',
-      questions: [
-        {
-          id: 'prov-1',
-          text: 'Can you describe what the provisioning experience was like for you?',
-          required: true,
-        },
-        {
-          id: 'prov-2',
-          text: "Was there any part of the 'Provision' process that felt unclear to you?",
-          required: true,
-        },
-        {
-          id: 'prov-3',
-          text: "Is the term 'provision' something you were familiar with, or is it a concept you don't encounter frequently?",
-          required: true,
-        },
-        {
-          id: 'prov-4',
-          text: 'How does this new process compare to how you rolled out features in NMC?',
-          description: "In Nuance Management Center (NMC) the concept of provisioning didn't exist in the same way.",
-          required: true,
-        },
-      ],
-    },
-    {
-      id: 'environments',
-      title: 'Environments',
-      topic: 'Environments',
-      description: 'Environments are separate spaces, like Test or Production, where you configure and manage applications, settings, and access without affecting other spaces.',
-      intro: "We'd like your input on environment management in Dragon admin center—creating and managing environments for testing, production, or department-specific needs to ensure applications, configurations, and access are properly controlled.",
-      icon: 'GlobeSurface',
-      questions: [
-        {
-          id: 'env-1',
-          text: 'What kinds of organizational structures or IT management needs do you expect your environment structure to reflect?',
-          required: true,
-        },
-        {
-          id: 'env-2',
-          text: 'What kinds of scenarios require you to create, manage, or modify environments? How frequently do you conduct this type of work?',
-          required: true,
-        },
-        {
-          id: 'env-3',
-          text: "Do you think having the ability to create multiple environments in DAC (for example, separate 'default' and 'test' environments) is useful for your organization's workflows?",
-          required: true,
-        },
-      ],
-    },
-    {
-      id: 'organization-units',
-      title: 'Organization units',
-      topic: 'Organizations',
-      description: 'Organizational Units are structural groupings, such as facilities, departments, or teams, used to organize users and control how settings and permissions are applied.',
-      intro: "Organizational Units are structural groupings, such as facilities, departments, or teams, used to organize users and control how settings and permissions are applied. In Nuance management center (NMC), the hierarchy was strictly Organization > Sites > Groups. In DAC, you have more freedom (multiple layers of Organization units without fixed 'site' or 'group' labels).",
-      icon: 'Organization',
-      questions: [
-        {
-          id: 'org-1',
-          text: 'How do you feel about organization units? Do they make organizing users and resources easier or harder for you?',
-          required: true,
-        },
-        {
-          id: 'org-2',
-          text: "Have you taken advantage of this flexibility? For example, have you restructured or added new Organization units now that you aren't limited to a site/group hierarchy?",
-          required: true,
-        },
-        {
-          id: 'org-3',
-          text: "How could the interface make it easier to find or manage your hierarchy? Any suggestions if it wasn't intuitive?",
-          required: true,
-        },
-        {
-          id: 'org-4',
-          text: 'What kinds of scenarios require you to create, manage, or modify org units? How frequently do you conduct this type of work?',
-          required: true,
-        },
-        {
-          id: 'org-5',
-          text: "Did you encounter any unexpected behavior or things you'd like to change about how Org Units work?",
-          required: true,
-        },
-      ],
-    },
-    {
-      id: 'library-texts',
-      title: 'Library items: Texts',
-      topic: 'Texts',
-      description: 'Texts are predefined content snippets inserted with keywords during clinical documentation—such as inserting a standard discharge summary when a clinician says "add discharge note."',
-      intro: 'Texts are reusable documentation snippets, like a standard discharge summary—"Patient stable and ready for home"—that clinicians insert with a voice command, such as "Discharge summary", in Dragon Copilot. In NMC these were Auto-texts tied to Sites/Groups; DAC lets you manage and scope them flexibly across Organization units.',
-      icon: 'Library',
-      questions: [
-        {
-          id: 'txt-1',
-          text: 'What types of texts do you manage for your organization? How often do you create or edit these?',
-          required: true,
-        },
-        {
-          id: 'txt-2',
-          text: 'Describe how you would add or modify a Text in DAC. Was it easy to do? Any challenges you encountered?',
-          required: true,
-        },
-        {
-          id: 'txt-3',
-          text: 'Is it clear how to manage the scope of a Text? For instance, whether a Text applies to the whole organization or only to a specific organization unit or user.',
-          required: true,
-        },
-        {
-          id: 'txt-4',
-          text: 'In Dragon admin center, texts can be defined at the organization-level or specified for a specific organization unit. Have you made use of that capability, or do you typically keep texts global? Why?',
-          required: true,
-        },
-        {
-          id: 'txt-5',
-          text: 'Similar to NMC, DAC supports cutting or copying a text from one Organization unit and pasting it into another. Do you use this feature? Has it worked as you would expect it to?',
-          required: true,
-        },
-      ],
-    },
-    {
-      id: 'library-prompts',
-      title: 'Library items: Prompts',
-      topic: 'Prompts',
-      description: 'Prompts are custom instructions for common clinical scenarios that tailor AI-generated responses when clinicians interact with chat—for example, guiding Copilot to summarize a medication list when a clinician types "summarize meds."',
-      intro: "Prompts are customizable AI requests—like 'Generate a structured assessment and plan'—that clinicians trigger in Dragon Copilot. In DAC, admins can tune each Prompt by shaping the instruction, required inputs, and desired clinical tone, ensuring the AI produces responses that match organizational standards.",
-      icon: 'Library',
-      questions: [
-        {
-          id: 'prm-1',
-          text: 'Prompts are a new library item in Dragon admin center. Prompts act as custom templates for frequent AI-generated content in Dragon Copilot. Have you explored the Prompts feature at all in the past few weeks?',
-          required: true,
-        },
-        {
-          id: 'prm-2',
-          text: 'What Prompts have you tried to create or use? How was the process of creating a custom prompt in DAC?',
-          required: true,
-        },
-        {
-          id: 'prm-3',
-          text: "Do you have any concerns or uncertainty about how you'd manage or govern these AI prompts for your users?",
-          required: true,
-        },
-        {
-          id: 'prm-4',
-          text: 'What scenarios might cause you to add, edit, or delete prompts? How frequently would you expect to encounter these scenarios?',
-          required: true,
-        },
-      ],
-    },
-    {
-      id: 'library-vocabulary',
-      title: 'Library items: Vocabulary',
-      topic: 'Vocabulary',
-      description: 'Vocabulary items add domain-specific medical terms and spoken forms to improve speech-to-text recognition accuracy in Dragon Copilot—for instance, teaching the system terms like "high blood sugar" or "hyper-gly-cee-mee-ah."',
-      intro: "Vocabulary items are custom words or phrases—such as 'hypertensive crisis' and its synonym 'malignant hypertension,' or the abbreviation 'HTN'—that ensure Dragon Copilot correctly recognizes the terminology clinicians use. In NMC, Words were tied to Sites/Groups; DAC lets you apply them globally or to specific Organization units.",
-      icon: 'Library',
-      questions: [
-        {
-          id: 'voc-1',
-          text: 'Have you worked with vocabulary items in DAC? (formerly known as Words in NMC) How has your experience been?',
-          required: true,
-        },
-        {
-          id: 'voc-2',
-          text: 'What kinds of tasks do you normally do with custom vocabulary? (e.g., adding new terms, reviewing for duplicates, updating pronunciations) — have you done any of those in DAC yet? How was that process?',
-          required: true,
-        },
-        {
-          id: 'voc-3',
-          text: "Previously in NMC, words may have been managed per site or group; now DAC lets you apply custom vocabulary at the organization-level or to a specific organization unit. Is this flexibility something you've used or plan to use?",
-          required: true,
-        },
-        {
-          id: 'voc-4',
-          text: 'How many vocabulary items do you manage for your organization? Can you describe how they are scoped and what scenarios they support?',
-          required: true,
-        },
-      ],
-    },
-    {
-      id: 'library-workflows',
-      title: 'Library items: Workflows',
-      topic: 'Workflows',
-      description: 'Workflows are automated step-by-step sequences that enable Dragon Copilot to carry out multi-step tasks for clinicians based on a keyword or phrase—such as opening a lab results section and inserting findings when the clinician says "document labs."',
-      intro: "Workflows automate multi-step actions—such as turning off the mic, copying selected text, and inserting a note—when a clinician says a spoken command like 'End session.' NMC's Step-by-Step Commands become centralized, Organization-Unit-scoped Workflows in DAC.",
-      icon: 'Library',
-      questions: [
-        {
-          id: 'wf-1',
-          text: 'NMC Step-by-Step Commands are now called Workflows in DAC. Have you accessed or managed any Workflows in DAC over the past few weeks?',
-          required: true,
-        },
-        {
-          id: 'wf-2',
-          text: 'What was your experience like? (E.g., creating a multi-step sequence, setting a spoken trigger phrase, etc.)',
-          required: true,
-        },
-        {
-          id: 'wf-3',
-          text: 'What kinds of workflows do you manage for your organization? How many workflows? What are some common use cases?',
-          required: true,
-        },
-        {
-          id: 'wf-4',
-          text: 'How often do you typically use or update these kinds of multi-step Workflows in administration?',
-          required: true,
-        },
-      ],
-    },
-    {
-      id: 'application-settings',
-      title: 'Application settings',
-      topic: 'Settings',
-      description: 'Application settings control how Dragon Copilot features and permissions behave across different levels in an environment, including the organization, its organizational units, and individual users.',
-      intro: "Application settings control how an application, such as Dragon Copilot, behaves for different environments and organization units—such as enabling AI summaries or restricting certain features. DAC uses a clear inheritance model so settings can be managed globally or customized for specific Organization units.",
-      icon: 'Settings',
-      questions: [
-        {
-          id: 'set-1',
-          text: 'Were you able to find where to manage global settings for your organization in DAC? How intuitive was it to find and navigate the settings pages?',
-          required: true,
-        },
-        {
-          id: 'set-2',
-          text: 'Is it clear how you would change a particular setting for only a subset of users (say, a specific hospital department) in DAC? Does the concept of applying settings through the organization unit hierarchy make sense?',
-          required: true,
-        },
-        {
-          id: 'set-3',
-          text: "In NMC, settings could be applied at the site or group level. In DAC, you can configure a setting at the organization-level or override it at a lower organization unit or user level. How do you feel about this level of control? Is it something you've used or plan to use?",
-          required: true,
-        },
-        {
-          id: 'set-4',
-          text: 'Have you utilized locking for settings? Do you have any concerns about how it works?',
-          required: true,
-        },
-        {
-          id: 'set-5',
-          text: "Are there any settings or configuration options you expected to find in DAC that you haven't found yet? Or settings you wish you could control per unit/user that you currently cannot?",
-          required: true,
-        },
-      ],
-    },
-  ],
-};
-
-// =============================================================================
-// Azure Services Configuration
-// =============================================================================
-
-export const azureConfig = {
-  speech: {
-    // These will be loaded from environment variables or Static Web App settings
-    subscriptionKey: import.meta.env.VITE_AZURE_SPEECH_KEY || '',
-    region: import.meta.env.VITE_AZURE_SPEECH_REGION || 'eastus2',
-    language: 'en-US',
+topics: [
+  {
+    id: 'partner-context',
+    title: 'About You and Your Project',
+    topic: 'Context',
+    description: 'Background information about you and your Dragon Copilot integration.',
+    intro: 'This section helps us understand your role, organization, and the Dragon Copilot solution you are working on.',
+    icon: 'Contact',
+    questions: [
+      {
+        id: 'ctx-1',
+        text: 'Can you describe your role and organization, and how you are involved with Dragon Copilot?',
+        required: true,
+      },
+      {
+        id: 'ctx-2',
+        text: 'What solution, agent, or integration are you building with Dragon Copilot?',
+        required: true,
+      },
+      {
+        id: 'ctx-3',
+        text: 'What stage is your Dragon Copilot project currently in, and what does that look like in practice?',
+        required: true,
+      },
+    ],
   },
-  api: {
-    baseUrl: import.meta.env.VITE_API_BASE_URL || '/api',
+
+  {
+    id: 'onboarding',
+    title: 'Onboarding Experience',
+    topic: 'Onboarding',
+    description: 'Your experience getting started with the Dragon Copilot partner program.',
+    intro: 'We’d like to understand how you got started and what your onboarding experience was like.',
+    icon: 'Rocket',
+    questions: [
+      {
+        id: 'onb-1',
+        text: 'Can you walk us through your onboarding experience, from initial sign‑up to being ready to develop?',
+        required: true,
+      },
+      {
+        id: 'onb-2',
+        text: 'What resources, documentation, or support did you rely on most during onboarding?',
+        required: true,
+      },
+      {
+        id: 'onb-3',
+        text: 'Were there any parts of onboarding that felt unclear, incomplete, or harder than expected?',
+        required: true,
+      },
+      {
+        id: 'onb-4',
+        text: 'What would you change or improve about the onboarding experience for future partners?',
+        required: true,
+      },
+    ],
   },
-};
 
-// =============================================================================
-// Feature Flags
-// =============================================================================
+  {
+    id: 'development',
+    title: 'Development Experience',
+    topic: 'Development',
+    description: 'Your experience building and integrating your Dragon Copilot solution.',
+    intro: 'This section focuses on how you developed your solution, including tools, documentation, and challenges.',
+    icon: 'Code',
+    questions: [
+      {
+        id: 'dev-1',
+        text: 'How would you describe your overall development experience building your Dragon Copilot integration?',
+        required: true,
+      },
+      {
+        id: 'dev-2',
+        text: 'What tools, sample code, or documentation were most helpful during development?',
+        required: true,
+      },
+      {
+        id: 'dev-3',
+        text: 'What were the biggest technical or workflow challenges you encountered while developing your solution?',
+        required: true,
+      },
+      {
+        id: 'dev-4',
+        text: 'What additional tools, documentation, or resources would have made development easier?',
+        required: true,
+      },
+    ],
+  },
 
-export const featureFlags = {
-  enableVoiceInput: true,
-  enableOfflineMode: true,
-};
+  {
+    id: 'integration-data',
+    title: 'Integration & Data',
+    topic: 'Integration',
+    description: 'How your solution integrates with Dragon Copilot and uses data.',
+    intro: 'We want to understand how your solution fits into clinical workflows and what data it depends on.',
+    icon: 'PlugConnected',
+    questions: [
+      {
+        id: 'int-1',
+        text: 'How does your solution integrate into the clinician’s workflow when using Dragon Copilot?',
+        required: true,
+      },
+      {
+        id: 'int-2',
+        text: 'What Dragon Copilot context or data does your solution rely on?',
+        required: true,
+      },
+      {
+        id: 'int-3',
+        text: 'Is there any additional data or context that would significantly improve your solution?',
+        required: true,
+      },
+      {
+        id: 'int-4',
+        text: 'Did you integrate with any external systems (such as EHRs), and what was that experience like?',
+        required: true,
+      },
+    ],
+  },
+
+  {
+    id: 'testing-debugging',
+    title: 'Testing & Debugging',
+    topic: 'Testing',
+    description: 'Your experience testing, debugging, and validating your solution.',
+    intro: 'This section focuses on how you tested your integration and what support you had during debugging.',
+    icon: 'Bug',
+    questions: [
+      {
+        id: 'test-1',
+        text: 'How did you approach testing your Dragon Copilot integration?',
+        required: true,
+      },
+      {
+        id: 'test-2',
+        text: 'What tools or processes did you use to debug issues during development?',
+        required: true,
+      },
+      {
+        id: 'test-3',
+        text: 'What challenges did you face when testing or validating your solution?',
+        required: true,
+      },
+      {
+        id: 'test-4',
+        text: 'What would increase your confidence in moving a solution to pilot or production?',
+        required: true,
+      },
+    ],
+  },
+
+  {
+    id: 'publishing',
+    title: 'Publishing & Go‑To‑Market',
+    topic: 'Publishing',
+    description: 'Your experience preparing to publish or distribute your solution.',
+    intro: 'We’d like to understand your experience with publishing, Partner Center, and go‑to‑market readiness.',
+    icon: 'Store',
+    questions: [
+      {
+        id: 'pub-1',
+        text: 'What are your plans for deploying or publishing your Dragon Copilot solution?',
+        required: true,
+      },
+      {
+        id: 'pub-2',
+        text: 'What has your experience been like preparing your solution for publishing or customer use?',
+        required: true,
+      },
+      {
+        id: 'pub-3',
+        text: 'Were there any requirements, reviews, or processes that were difficult to navigate?',
+        required: true,
+      },
+      {
+        id: 'pub-4',
+        text: 'What support or guidance would make the publishing process easier?',
+        required: true,
+      },
+    ],
+  },
+
+  {
+    id: 'wrap-up',
+    title: 'Overall Feedback',
+    topic: 'Wrap‑Up',
+    description: 'Your overall impressions and future needs.',
+    intro: 'To close, we’d like your overall perspective and suggestions for improvement.',
+    icon: 'Feedback',
+    questions: [
+      {
+        id: 'wrap-1',
+        text: 'What has been the most positive aspect of working with Dragon Copilot so far?',
+        required: true,
+      },
+      {
+        id: 'wrap-2',
+        text: 'What has been the biggest challenge or pain point across your experience?',
+        required: true,
+      },
+      {
+        id: 'wrap-3',
+        text: 'If you could change or improve one thing about the Dragon Copilot partner experience, what would it be?',
+        required: true,
+      },
+      {
+        id: 'wrap-4',
+        text: 'Do you plan to build additional features or integrations in the future? Why or why not?',
+        required: true,
+      },
+      {
+        id: 'wrap-5',
+        text: 'Is there anything else you’d like to share that we haven’t asked about?',
+        required: false,
+      },
+    ],
+  },
+]
