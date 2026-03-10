@@ -53,7 +53,14 @@ function App() {
       consentGiven: true,
       consentTimestamp: new Date().toISOString(),
     });
-    setCurrentStep('topics');
+    // Automatically open the first topic
+    const firstTopic = surveyConfig.topics[0];
+    if (firstTopic) {
+      setSelectedTopicId(firstTopic.id);
+      setCurrentStep('questions');
+    } else {
+      setCurrentStep('topics');
+    }
   }, []);
 
   // Handle topic selection
