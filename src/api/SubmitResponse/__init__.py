@@ -24,14 +24,18 @@ def save_to_database(submission_id: str, participant: dict, responses: list) -> 
         
         # Insert participant (skip if already exists from a previous topic submission)
         cursor.execute(
-            """IF NOT EXISTS (SELECT 1 FROM participants WHERE submission_id = %s)
-               INSERT INTO participants 
-               (submission_id, first_name, last_name, email, company, consent_given, consent_timestamp) 
-               VALUES (%s, %s, %s, %s, %s, 1, GETUTCDATE())""",
-            (submission_id, submission_id, participant.get('firstName'), 
-             participant.get('lastName'), participant.get('email'),
-             participant.get('company'))
+            "SELECT 1 FROM participants WHERE submission_id = %s",
+            (submission_id,)
         )
+        if cursor.fetchone() is None:
+            cursor.execute(
+                """INSERT INTO participants 
+                   (submission_id, first_name, last_name, email, company, consent_given, consent_timestamp) 
+                   VALUES (%s, %s, %s, %s, %s, 1, GETUTCDATE())""",
+                (submission_id, participant.get('firstName'), 
+                 participant.get('lastName'), participant.get('email'),
+                 participant.get('company'))
+            )
         
         # Insert responses
         for response in responses:
