@@ -22,13 +22,15 @@ def save_to_database(submission_id: str, participant: dict, responses: list) -> 
         conn = get_connection()
         cursor = conn.cursor()
         
-        # Insert participant
+        # Insert participant (skip if already exists from a previous topic submission)
         cursor.execute(
-            """INSERT INTO participants 
-               (submission_id, first_name, last_name, email, consent_given, consent_timestamp) 
-               VALUES (%s, %s, %s, %s, 1, GETUTCDATE())""",
-            (submission_id, participant.get('firstName'), 
-             participant.get('lastName'), participant.get('email'))
+            """IF NOT EXISTS (SELECT 1 FROM participants WHERE submission_id = %s)
+               INSERT INTO participants 
+               (submission_id, first_name, last_name, email, company, consent_given, consent_timestamp) 
+               VALUES (%s, %s, %s, %s, %s, 1, GETUTCDATE())""",
+            (submission_id, submission_id, participant.get('firstName'), 
+             participant.get('lastName'), participant.get('email'),
+             participant.get('company'))
         )
         
         # Insert responses
@@ -58,7 +60,8 @@ def save_to_memory(submission_id: str, participant: dict, responses: list):
         submission_id=submission_id,
         first_name=participant.get('firstName'),
         last_name=participant.get('lastName'),
-        email=participant.get('email')
+        email=participant.get('email'),
+        company=participant.get('company')
     )
     
     for response in responses:

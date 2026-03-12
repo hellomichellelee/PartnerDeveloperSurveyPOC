@@ -20,13 +20,17 @@ def get_storage():
     """Get the in-memory storage"""
     return _storage
 
-def add_participant(submission_id: str, first_name: str, last_name: str, email: str):
-    """Add a participant to storage"""
+def add_participant(submission_id: str, first_name: str, last_name: str, email: str, company: str = None):
+    """Add a participant to storage (skips if submission_id already exists)"""
+    existing = next((p for p in _storage["participants"] if p["submission_id"] == submission_id), None)
+    if existing:
+        return existing
     participant = {
         "submission_id": submission_id,
         "first_name": first_name,
         "last_name": last_name,
         "email": email,
+        "company": company,
         "consent_given": True
     }
     _storage["participants"].append(participant)
@@ -55,6 +59,7 @@ def get_all_responses():
             result["first_name"] = participant["first_name"]
             result["last_name"] = participant["last_name"]
             result["email"] = participant["email"]
+            result["company"] = participant.get("company")
         results.append(result)
     return results
 
