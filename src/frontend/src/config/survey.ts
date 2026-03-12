@@ -19,8 +19,22 @@ export const surveyConfig: SurveyConfig = {
       questions: [
         {
           id: 'ctx-1',
-          text: 'Can you describe your role and organization, and how you are involved with Dragon Copilot?',
+          text: 'Can you describe your role and organization, and how you are involved with Dragon Copilot apps & agents?',
           required: true,
+        },
+        {
+          id: 'ctx-1b',
+          text: 'Which categories best describe your app or agent?',
+          description: 'Select all that apply.',
+          required: true,
+          inputType: 'multiselect',
+          options: [
+            'Clinical decision support',
+            'Population health management',
+            'Real world evidence',
+            'Revenue cycle management',
+          ],
+          allowOther: true,
         },
         {
           id: 'ctx-2',

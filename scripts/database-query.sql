@@ -1,5 +1,5 @@
 
 
 SELECT*
-FROM dbo.responses;
+FROM dbo.questions;
 

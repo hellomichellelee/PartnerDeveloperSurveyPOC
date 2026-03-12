@@ -5,7 +5,7 @@ import { ConsentForm } from './components/ConsentForm';
 import { ParticipantForm } from './components/ParticipantForm';
 import { TopicMenu } from './components/TopicMenu';
 import { SurveyQuestions } from './components/SurveyQuestions';
-import { TopicCompletionScreen } from './components/TopicCompletionScreen';
+
 import { CompletionScreen } from './components/CompletionScreen';
 import { surveyConfig } from './config/survey';
 import type { Participant, SurveyResponse, SurveyStep } from './types';
@@ -134,17 +134,14 @@ function App() {
       setIsSubmitting(false);
     }
 
-    // Accumulate responses and mark topic done
+    // Accumulate responses and mark topic done, then return to topic menu
     setAllResponses(prev => [...prev, ...taggedResponses]);
     setCompletedTopics(prev => new Set([...prev, selectedTopicId!]));
-    setCurrentStep('topicComplete');
-  }, [submissionId, participant, selectedTopicId, dispatchToast]);
-
-  // Go back to topic menu
-  const handleSelectAnotherTopic = useCallback(() => {
     setSelectedTopicId(null);
     setCurrentStep('topics');
-  }, []);
+  }, [submissionId, participant, selectedTopicId, dispatchToast]);
+
+
 
   // End the entire survey
   const handleEndSurvey = useCallback(() => {
@@ -190,16 +187,7 @@ function App() {
             isSubmitting={isSubmitting}
           />
         ) : null;
-      case 'topicComplete':
-        return currentTopic ? (
-          <TopicCompletionScreen
-            topicTitle={currentTopic.title}
-            completedCount={completedTopics.size}
-            totalTopics={surveyConfig.topics.length}
-            onSelectAnotherTopic={handleSelectAnotherTopic}
-            onEndSurvey={handleEndSurvey}
-          />
-        ) : null;
+
       case 'complete':
         return (
           <CompletionScreen
@@ -213,7 +201,7 @@ function App() {
   };
 
   // For topic-related screens, render full-width (no header constraint)
-  const isFullWidth = ['topics', 'questions', 'topicComplete', 'complete'].includes(currentStep);
+  const isFullWidth = ['topics', 'questions', 'complete'].includes(currentStep);
 
   return (
     <div className={styles.app}>

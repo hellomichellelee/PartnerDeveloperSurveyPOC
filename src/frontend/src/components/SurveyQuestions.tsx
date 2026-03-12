@@ -11,6 +11,8 @@ import {
   Field,
   Divider,
   Spinner,
+  Checkbox,
+  Input,
 } from '@fluentui/react-components';
 import {
   ArrowLeft24Regular,
@@ -101,6 +103,20 @@ const useStyles = makeStyles({
   responseArea: {
     minHeight: '150px',
   },
+  multiselectGroup: {
+    display: 'flex',
+    flexDirection: 'column',
+    ...shorthands.gap('8px'),
+    marginTop: tokens.spacingVerticalM,
+  },
+  otherRow: {
+    display: 'flex',
+    alignItems: 'center',
+    ...shorthands.gap('8px'),
+  },
+  otherInput: {
+    flexGrow: 1,
+  },
   actions: {
     display: 'flex',
     justifyContent: 'space-between',
@@ -129,6 +145,8 @@ export function SurveyQuestions({ questions, topicTitle, topicIntro, onComplete,
   const [currentText, setCurrentText] = useState('');
   const [interimText, setInterimText] = useState('');
   const [isRecording, setIsRecording] = useState(false);
+  const [selectedOptions, setSelectedOptions] = useState<Set<string>>(new Set());
+  const [otherText, setOtherText] = useState('');
 
   // Ref to track the latest confirmed text for voice appending
   const confirmedTextRef = useRef('');
@@ -138,6 +156,7 @@ export function SurveyQuestions({ questions, topicTitle, topicIntro, onComplete,
   const isLastQuestion = currentIndex === questions.length - 1;
   const isFirstQuestion = currentIndex === 0;
 
+  const isMultiselect = currentQuestion.inputType === 'multiselect';
   const existingResponse = responses.get(currentQuestion.id);
   const confirmedText = currentText !== '' ? currentText : (existingResponse?.responseText || '');
   const displayText = confirmedText + (interimText ? (confirmedText ? ' ' : '') + interimText : '');
@@ -147,18 +166,27 @@ export function SurveyQuestions({ questions, topicTitle, topicIntro, onComplete,
     confirmedTextRef.current = confirmedText;
   }, [confirmedText]);
 
+  const getMultiselectResponseText = useCallback(() => {
+    const parts = [...selectedOptions];
+    if (otherText.trim()) {
+      parts.push(otherText.trim());
+    }
+    return parts.join(', ');
+  }, [selectedOptions, otherText]);
+
   const saveCurrentResponse = useCallback(() => {
-    if (confirmedText.trim()) {
+    const text = isMultiselect ? getMultiselectResponseText() : confirmedText.trim();
+    if (text) {
       const response: SurveyResponse = {
         questionId: currentQuestion.id,
         questionText: currentQuestion.text,
-        responseText: confirmedText.trim(),
-        inputMethod,
+        responseText: text,
+        inputMethod: isMultiselect ? 'text' : inputMethod,
         timestamp: new Date().toISOString(),
       };
       setResponses(prev => new Map(prev).set(currentQuestion.id, response));
     }
-  }, [currentQuestion, confirmedText, inputMethod]);
+  }, [currentQuestion, confirmedText, inputMethod, isMultiselect, getMultiselectResponseText]);
 
   const handleNext = useCallback(() => {
     saveCurrentResponse();
@@ -168,26 +196,32 @@ export function SurveyQuestions({ questions, topicTitle, topicIntro, onComplete,
 
     if (isLastQuestion) {
       const allResponses = Array.from(responses.values());
-      if (confirmedText.trim()) {
+      const finalText = isMultiselect ? getMultiselectResponseText() : confirmedText.trim();
+      if (finalText) {
         allResponses.push({
           questionId: currentQuestion.id,
           questionText: currentQuestion.text,
-          responseText: confirmedText.trim(),
-          inputMethod,
+          responseText: finalText,
+          inputMethod: isMultiselect ? 'text' : inputMethod,
           timestamp: new Date().toISOString(),
         });
       }
       onComplete(allResponses);
     } else {
       setCurrentIndex(prev => prev + 1);
+      // Reset multiselect state for the next question
+      setSelectedOptions(new Set());
+      setOtherText('');
     }
-  }, [saveCurrentResponse, isLastQuestion, responses, confirmedText, currentQuestion, inputMethod, onComplete]);
+  }, [saveCurrentResponse, isLastQuestion, responses, confirmedText, currentQuestion, inputMethod, onComplete, isMultiselect, getMultiselectResponseText]);
 
   const handlePrevious = useCallback(() => {
     saveCurrentResponse();
     setCurrentText('');
     setInterimText('');
     confirmedTextRef.current = '';
+    setSelectedOptions(new Set());
+    setOtherText('');
     setCurrentIndex(prev => prev - 1);
   }, [saveCurrentResponse]);
 
@@ -224,7 +258,28 @@ export function SurveyQuestions({ questions, topicTitle, topicIntro, onComplete,
     }
   }, []);
 
-  const canProceed = confirmedText.trim().length > 0 || !currentQuestion.required;
+  // Restore multiselect state when navigating back to a multiselect question
+  useEffect(() => {
+    if (isMultiselect && existingResponse) {
+      const parts = existingResponse.responseText.split(', ');
+      const knownOptions = new Set(currentQuestion.options || []);
+      const selected = new Set<string>();
+      let other = '';
+      for (const part of parts) {
+        if (knownOptions.has(part)) {
+          selected.add(part);
+        } else {
+          other = part;
+        }
+      }
+      setSelectedOptions(selected);
+      setOtherText(other);
+    }
+  }, [currentIndex]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const canProceed = isMultiselect
+    ? (selectedOptions.size > 0 || otherText.trim().length > 0) || !currentQuestion.required
+    : confirmedText.trim().length > 0 || !currentQuestion.required;
 
   return (
     <div className={styles.container}>
@@ -266,27 +321,71 @@ export function SurveyQuestions({ questions, topicTitle, topicIntro, onComplete,
               </Text>
             )}
 
-            {featureFlags.enableVoiceInput && (
-              <div className={styles.voiceInputSection}>
-                <VoiceRecorder
-                  onTranscript={handleTranscript}
-                  onRecordingChange={handleRecordingChange}
-                  isRecording={isRecording}
-                />
+            {isMultiselect ? (
+              <div className={styles.multiselectGroup}>
+                {currentQuestion.options?.map(option => (
+                  <Checkbox
+                    key={option}
+                    label={option}
+                    checked={selectedOptions.has(option)}
+                    onChange={(_, data) => {
+                      setSelectedOptions(prev => {
+                        const next = new Set(prev);
+                        if (data.checked) {
+                          next.add(option);
+                        } else {
+                          next.delete(option);
+                        }
+                        return next;
+                      });
+                    }}
+                  />
+                ))}
+                {currentQuestion.allowOther && (
+                  <div className={styles.otherRow}>
+                    <Checkbox
+                      label="Other:"
+                      checked={otherText.trim().length > 0}
+                      onChange={(_, data) => {
+                        if (!data.checked) {
+                          setOtherText('');
+                        }
+                      }}
+                    />
+                    <Input
+                      className={styles.otherInput}
+                      value={otherText}
+                      onChange={(_, data) => setOtherText(data.value)}
+                      placeholder="Please specify"
+                    />
+                  </div>
+                )}
               </div>
-            )}
+            ) : (
+              <>
+                {featureFlags.enableVoiceInput && (
+                  <div className={styles.voiceInputSection}>
+                    <VoiceRecorder
+                      onTranscript={handleTranscript}
+                      onRecordingChange={handleRecordingChange}
+                      isRecording={isRecording}
+                    />
+                  </div>
+                )}
 
-            <Field label="Your response">
-              <Textarea
-                className={styles.responseArea}
-                value={displayText}
-                onChange={handleTextChange}
-                onFocus={handleTextareaFocus}
-                placeholder="Type your response here..."
-                resize="vertical"
-                size="large"
-              />
-            </Field>
+                <Field label="Your response">
+                  <Textarea
+                    className={styles.responseArea}
+                    value={displayText}
+                    onChange={handleTextChange}
+                    onFocus={handleTextareaFocus}
+                    placeholder="Type your response here..."
+                    resize="vertical"
+                    size="large"
+                  />
+                </Field>
+              </>
+            )}
           </div>
 
           <div className={styles.actions}>

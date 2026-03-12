@@ -53,6 +53,7 @@ export function ParticipantForm({ onSubmit }: ParticipantFormProps) {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
+  const [company, setCompany] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validateForm = useCallback(() => {
@@ -85,6 +86,7 @@ export function ParticipantForm({ onSubmit }: ParticipantFormProps) {
           firstName: firstName.trim(),
           lastName: lastName.trim(),
           email: email.trim().toLowerCase(),
+          company: company.trim() || undefined,
           consentGiven: true,
         });
       }
@@ -151,6 +153,14 @@ export function ParticipantForm({ onSubmit }: ParticipantFormProps) {
             onChange={(_, data) => setEmail(data.value)}
             placeholder="you@example.com"
             contentBefore={<Mail24Regular />}
+          />
+        </Field>
+
+        <Field label="Company">
+          <Input
+            value={company}
+            onChange={(_, data) => setCompany(data.value)}
+            placeholder="Enter your company name (optional)"
           />
         </Field>
 
